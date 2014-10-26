@@ -1,0 +1,253 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2012 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 408 416)
+	(text "lvds_com" (rect 5 0 45 12)(font "Arial" ))
+	(text "inst" (rect 8 384 20 396)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "xSTART[4..0]" (rect 0 0 60 12)(font "Arial" ))
+		(text "xSTART[4..0]" (rect 21 27 81 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 3))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "xCLR_ALL" (rect 0 0 51 12)(font "Arial" ))
+		(text "xCLR_ALL" (rect 21 43 72 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "xALIGN_ACTIVE" (rect 0 0 80 12)(font "Arial" ))
+		(text "xALIGN_ACTIVE" (rect 21 59 101 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "xADC[4..0][15..0]" (rect 0 0 71 12)(font "Arial" ))
+		(text "xADC[4..0][15..0]" (rect 21 75 92 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 3))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "xINFO1[4..0][15..0]" (rect 0 0 75 12)(font "Arial" ))
+		(text "xINFO1[4..0][15..0]" (rect 21 91 96 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 3))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "xINFO2[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO2[4..0][15..0]" (rect 21 107 97 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 3))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "xINFO3[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO3[4..0][15..0]" (rect 21 123 97 135)(font "Arial" ))
+		(line (pt 0 128)(pt 16 128)(line_width 3))
+	)
+	(port
+		(pt 0 144)
+		(input)
+		(text "xINFO4[4..0][15..0]" (rect 0 0 77 12)(font "Arial" ))
+		(text "xINFO4[4..0][15..0]" (rect 21 139 98 151)(font "Arial" ))
+		(line (pt 0 144)(pt 16 144)(line_width 3))
+	)
+	(port
+		(pt 0 160)
+		(input)
+		(text "xINFO5[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO5[4..0][15..0]" (rect 21 155 97 167)(font "Arial" ))
+		(line (pt 0 160)(pt 16 160)(line_width 3))
+	)
+	(port
+		(pt 0 176)
+		(input)
+		(text "xINFO6[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO6[4..0][15..0]" (rect 21 171 97 183)(font "Arial" ))
+		(line (pt 0 176)(pt 16 176)(line_width 3))
+	)
+	(port
+		(pt 0 192)
+		(input)
+		(text "xINFO7[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO7[4..0][15..0]" (rect 21 187 97 199)(font "Arial" ))
+		(line (pt 0 192)(pt 16 192)(line_width 3))
+	)
+	(port
+		(pt 0 208)
+		(input)
+		(text "xINFO8[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO8[4..0][15..0]" (rect 21 203 97 215)(font "Arial" ))
+		(line (pt 0 208)(pt 16 208)(line_width 3))
+	)
+	(port
+		(pt 0 224)
+		(input)
+		(text "xINFO9[4..0][15..0]" (rect 0 0 76 12)(font "Arial" ))
+		(text "xINFO9[4..0][15..0]" (rect 21 219 97 231)(font "Arial" ))
+		(line (pt 0 224)(pt 16 224)(line_width 3))
+	)
+	(port
+		(pt 0 240)
+		(input)
+		(text "xINFO10[4..0][15..0]" (rect 0 0 80 12)(font "Arial" ))
+		(text "xINFO10[4..0][15..0]" (rect 21 235 101 247)(font "Arial" ))
+		(line (pt 0 240)(pt 16 240)(line_width 3))
+	)
+	(port
+		(pt 0 256)
+		(input)
+		(text "xEVT_CNT[4..0][15..0]" (rect 0 0 96 12)(font "Arial" ))
+		(text "xEVT_CNT[4..0][15..0]" (rect 21 251 117 263)(font "Arial" ))
+		(line (pt 0 256)(pt 16 256)(line_width 3))
+	)
+	(port
+		(pt 0 272)
+		(input)
+		(text "xCLK_40MHz" (rect 0 0 60 12)(font "Arial" ))
+		(text "xCLK_40MHz" (rect 21 267 81 279)(font "Arial" ))
+		(line (pt 0 272)(pt 16 272)(line_width 1))
+	)
+	(port
+		(pt 0 288)
+		(input)
+		(text "xRX_LVDS_DATA" (rect 0 0 87 12)(font "Arial" ))
+		(text "xRX_LVDS_DATA" (rect 21 283 108 295)(font "Arial" ))
+		(line (pt 0 288)(pt 16 288)(line_width 1))
+	)
+	(port
+		(pt 0 304)
+		(input)
+		(text "xPSEC_MASK[4..0]" (rect 0 0 87 12)(font "Arial" ))
+		(text "xPSEC_MASK[4..0]" (rect 21 299 108 311)(font "Arial" ))
+		(line (pt 0 304)(pt 16 304)(line_width 3))
+	)
+	(port
+		(pt 0 320)
+		(input)
+		(text "xFPGA_PLL_LOCK" (rect 0 0 88 12)(font "Arial" ))
+		(text "xFPGA_PLL_LOCK" (rect 21 315 109 327)(font "Arial" ))
+		(line (pt 0 320)(pt 16 320)(line_width 1))
+	)
+	(port
+		(pt 0 336)
+		(input)
+		(text "xEXTERNAL_DONE" (rect 0 0 94 12)(font "Arial" ))
+		(text "xEXTERNAL_DONE" (rect 21 331 115 343)(font "Arial" ))
+		(line (pt 0 336)(pt 16 336)(line_width 1))
+	)
+	(port
+		(pt 0 352)
+		(input)
+		(text "xREAD_TRIG_RATE_ONLY" (rect 0 0 133 12)(font "Arial" ))
+		(text "xREAD_TRIG_RATE_ONLY" (rect 21 347 154 359)(font "Arial" ))
+		(line (pt 0 352)(pt 16 352)(line_width 1))
+	)
+	(port
+		(pt 0 368)
+		(input)
+		(text "xSELF_TRIG_RATE_COUNT[29..0][15..0]" (rect 0 0 182 12)(font "Arial" ))
+		(text "xSELF_TRIG_RATE_COUNT[29..0][15..0]" (rect 21 363 203 375)(font "Arial" ))
+		(line (pt 0 368)(pt 16 368)(line_width 3))
+	)
+	(port
+		(pt 392 32)
+		(output)
+		(text "xDONE[4..0]" (rect 0 0 54 12)(font "Arial" ))
+		(text "xDONE[4..0]" (rect 317 27 371 39)(font "Arial" ))
+		(line (pt 392 32)(pt 376 32)(line_width 3))
+	)
+	(port
+		(pt 392 48)
+		(output)
+		(text "xALIGN_SUCCESS" (rect 0 0 87 12)(font "Arial" ))
+		(text "xALIGN_SUCCESS" (rect 284 43 371 55)(font "Arial" ))
+		(line (pt 392 48)(pt 376 48)(line_width 1))
+	)
+	(port
+		(pt 392 64)
+		(output)
+		(text "xINSTRUCTION[31..0]" (rect 0 0 94 12)(font "Arial" ))
+		(text "xINSTRUCTION[31..0]" (rect 277 59 371 71)(font "Arial" ))
+		(line (pt 392 64)(pt 376 64)(line_width 3))
+	)
+	(port
+		(pt 392 80)
+		(output)
+		(text "xINSTRUCT_READY" (rect 0 0 97 12)(font "Arial" ))
+		(text "xINSTRUCT_READY" (rect 274 75 371 87)(font "Arial" ))
+		(line (pt 392 80)(pt 376 80)(line_width 1))
+	)
+	(port
+		(pt 392 96)
+		(output)
+		(text "xTX_LVDS_DATA[1..0]" (rect 0 0 103 12)(font "Arial" ))
+		(text "xTX_LVDS_DATA[1..0]" (rect 268 91 371 103)(font "Arial" ))
+		(line (pt 392 96)(pt 376 96)(line_width 3))
+	)
+	(port
+		(pt 392 112)
+		(output)
+		(text "xRADDR[13..0]" (rect 0 0 67 12)(font "Arial" ))
+		(text "xRADDR[13..0]" (rect 304 107 371 119)(font "Arial" ))
+		(line (pt 392 112)(pt 376 112)(line_width 3))
+	)
+	(port
+		(pt 392 128)
+		(output)
+		(text "xRAM_READ_EN[4..0]" (rect 0 0 107 12)(font "Arial" ))
+		(text "xRAM_READ_EN[4..0]" (rect 264 123 371 135)(font "Arial" ))
+		(line (pt 392 128)(pt 376 128)(line_width 3))
+	)
+	(port
+		(pt 392 144)
+		(output)
+		(text "xDC_XFER_DONE[4..0]" (rect 0 0 107 12)(font "Arial" ))
+		(text "xDC_XFER_DONE[4..0]" (rect 264 139 371 151)(font "Arial" ))
+		(line (pt 392 144)(pt 376 144)(line_width 3))
+	)
+	(port
+		(pt 392 160)
+		(output)
+		(text "xTX_BUSY" (rect 0 0 48 12)(font "Arial" ))
+		(text "xTX_BUSY" (rect 323 155 371 167)(font "Arial" ))
+		(line (pt 392 160)(pt 376 160)(line_width 1))
+	)
+	(port
+		(pt 392 176)
+		(output)
+		(text "xRX_BUSY" (rect 0 0 50 12)(font "Arial" ))
+		(text "xRX_BUSY" (rect 321 171 371 183)(font "Arial" ))
+		(line (pt 392 176)(pt 376 176)(line_width 1))
+	)
+	(drawing
+		(rectangle (rect 16 16 376 384)(line_width 1))
+	)
+)

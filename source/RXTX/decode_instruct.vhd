@@ -1,0 +1,286 @@
+--------------------------------------------------
+-- University of Chicago
+-- LAPPD system firmware
+--------------------------------------------------
+-- module		: 	decode_instruct
+-- author		: 	ejo
+-- date			: 	6/2012
+-- description	:  INSTRUCTIONS
+--------------------------------------------------
+
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+use work.Definition_Pool.all;
+
+entity decode_instruct is
+	port(
+		xCLR_ALL				:		in 	std_logic;
+		xINSTRUCT_FLAG		:		in		std_logic;
+		xCLK_40MHz			:		in		std_logic;
+		xINSTRUCT_WORD		:		in		std_logic_vector(31 downto 0);
+		xALIGN_SUCCESS		:		in		std_logic;
+		xTRIGGER				: 		in		std_logic;
+		
+		xRESET_DLL_FLAG	:		out	std_logic_vector(4 downto 0);
+		xSET_TRIG_THRESH	:		out	Word_array;
+		xSET_VBIAS			:		out	Word_array;
+		xADJUST_RO_TARGET :		out	Word_array;
+		xSELF_TRIG_SETTINGS:		out	std_logic_vector(11 downto 0);
+		xRESET_SELF_TRIG	:		out	std_logic;
+		xSELF_TRIG_MASK	:		out	std_logic_vector(11 downto 0);
+		xSET_PSEC_MASK		:		out	std_logic_vector(4 downto 0);
+		xINSTRUCT_BUSY		: 		out	std_logic;
+		xCC_FIFO_STATUS	: 		out	std_logic_vector(4 downto 0);
+		xENABLE_LED			:		out	std_logic;
+		xENABLE_CAL_SWITCH:		out   std_logic_vector(14 downto 0);
+		xSYSTEM_CLOCK_COUNTER:  out	Word_array;
+		xSYSTEM_INSTRUCTION	:	out	Word_array;
+		xSET_DLL_VDD			:	out	Word_array);
+end decode_instruct;
+
+architecture Behavioral of decode_instruct is
+	type GET_INSTRUCTION_STATE_TYPE is (WAIT_FOR_INSTRUCT, TARGET, DELAY);
+	signal GET_INSTRUCTION_STATE	:		GET_INSTRUCTION_STATE_TYPE;
+	
+		signal INSTRUCT_VALUE		:		std_logic_vector(11 downto 0);
+		signal INSTRUCT_PSEC_MASK	:		std_logic_vector(4 downto 0);
+		signal INSTRUCT_CHAN_MASK	:		std_logic_vector(5 downto 0);
+		signal INSTRUCTION			:		std_logic_vector(3 downto 0);
+		signal RESET_DLL_FLAG		:		std_logic_vector(4 downto 0);
+		signal SET_TRIG_THRESH		:		Word_array;
+		signal SET_VBIAS				:		Word_array;
+		signal ADJUST_RO_TARGET 	:		Word_array;
+		signal SET_DLL_VDD			:		Word_array;
+		signal SELF_TRIG_SETTINGS	:		std_logic_vector(11 downto 0);
+		signal RESET_SELF_TRIG		:		std_logic;
+		signal SELF_TRIG_MASK		:		std_logic_vector(11 downto 0);
+		signal SET_PSEC_MASK			:		std_logic_vector(4 downto 0);
+		signal INSTRUCT_BUSY			:		std_logic;
+		signal CC_FIFO_STATUS		:		std_logic_vector(4 downto 0);
+		signal ENABLE_LED				:		std_logic;
+		signal ENABLE_CAL_SWITCH	:		std_logic_vector(14 downto 0);
+		signal SYSTEM_CLOCK_COUNTER:		std_logic_vector(47 downto 0);
+		signal LATCHED_SYSTEM_CLOCK:		std_logic_vector(47 downto 0);
+		signal LAST_INSTRUCTION		:		std_logic_vector(31 downto 0);
+		signal LAST_LAST_INSTRUCTION:		std_logic_vector(31 downto 0);
+		signal EVENT_COUNT			:		std_logic_vector(31 downto 0);
+		
+		
+begin
+
+		xRESET_DLL_FLAG	<= RESET_DLL_FLAG;
+		xSET_TRIG_THRESH	<= SET_TRIG_THRESH;
+		xSET_VBIAS			<= SET_VBIAS;
+		xSET_DLL_VDD 		<= SET_DLL_VDD;
+		xADJUST_RO_TARGET <= ADJUST_RO_TARGET;
+		xRESET_SELF_TRIG	<= RESET_SELF_TRIG;
+		xSET_PSEC_MASK	   <= SET_PSEC_MASK;
+		xINSTRUCT_BUSY		<= INSTRUCT_BUSY;
+		xCC_FIFO_STATUS   <= CC_FIFO_STATUS;
+		xENABLE_LED 		<= ENABLE_LED;
+		xENABLE_CAL_SWITCH	<= ENABLE_CAL_SWITCH;
+		xSELF_TRIG_SETTINGS	<= SELF_TRIG_SETTINGS;
+		xSELF_TRIG_MASK	<= SELF_TRIG_MASK;	
+		xSYSTEM_CLOCK_COUNTER(0) <= LATCHED_SYSTEM_CLOCK(15 downto 0);
+		xSYSTEM_CLOCK_COUNTER(1) <= LATCHED_SYSTEM_CLOCK(31 downto 16);
+		xSYSTEM_CLOCK_COUNTER(2) <= LATCHED_SYSTEM_CLOCK(47 downto 32);
+		xSYSTEM_CLOCK_COUNTER(3) <= EVENT_COUNT(15 downto 0);
+		xSYSTEM_CLOCK_COUNTER(4) <= EVENT_COUNT(31 downto 16);
+		xSYSTEM_INSTRUCTION(0) <= LAST_INSTRUCTION(15 downto 0);
+		xSYSTEM_INSTRUCTION(1) <= LAST_INSTRUCTION(31 downto 16);
+		xSYSTEM_INSTRUCTION(2) <= LAST_LAST_INSTRUCTION(15 downto 0);
+		xSYSTEM_INSTRUCTION(3) <= LAST_LAST_INSTRUCTION(31 downto 16);
+		xSYSTEM_INSTRUCTION(4) <= (others => '0');
+		
+--driver for 48 bit system clock/timestamp mangement
+process(xCLR_ALL, xCLK_40MHz, RESET_DLL_FLAG)
+begin
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' then
+			SYSTEM_CLOCK_COUNTER <= (others => '0');
+	elsif rising_edge(xCLK_40MHz) then
+		SYSTEM_CLOCK_COUNTER <= SYSTEM_CLOCK_COUNTER + 1;
+	end if;
+end process;
+
+process(xCLR_ALL,xTRIGGER)
+begin
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' then
+		LATCHED_SYSTEM_CLOCK <= (others => '0');
+		EVENT_COUNT <= (others => '0');
+	elsif rising_edge(xTRIGGER) then	
+		LATCHED_SYSTEM_CLOCK <= SYSTEM_CLOCK_COUNTER;
+		EVENT_COUNT <= EVENT_COUNT + 1;
+	end if;
+end process;
+		
+process(xCLR_ALL, xCLK_40MHz, xINSTRUCT_FLAG)
+variable i : integer range 100 downto 0;
+begin
+	if xCLR_ALL = '1' then  --set default start-up values...
+		SET_TRIG_THRESH(0)<= x"0000";
+		SET_TRIG_THRESH(1)<= x"0000";
+		SET_TRIG_THRESH(2)<= x"0000";
+		SET_TRIG_THRESH(3)<= x"0000";
+		SET_TRIG_THRESH(4)<= x"0000";
+		SET_VBIAS(0)		<= x"0800";
+		SET_VBIAS(1)		<= x"0800";
+		SET_VBIAS(2)		<= x"0800";
+		SET_VBIAS(3)		<= x"0800";
+		SET_VBIAS(4)		<= x"0800";
+		SET_DLL_VDD(0)		<= x"0CFF"; --x"FFFF";
+		SET_DLL_VDD(1)		<= x"0CFF"; --x"FFFF";
+		SET_DLL_VDD(2)		<= x"0CFF"; --x"FFFF";
+		SET_DLL_VDD(3)		<= x"0CFF"; --x"FFFF";
+		SET_DLL_VDD(4)		<= x"0CFF"; --x"FFFF";
+		CC_FIFO_STATUS    <= "00000";
+		ADJUST_RO_TARGET(0)	<= RO1;
+		ADJUST_RO_TARGET(1)	<= RO2;
+		ADJUST_RO_TARGET(2)	<= RO3;		
+		ADJUST_RO_TARGET(3)	<= RO4;
+		ADJUST_RO_TARGET(4)	<= RO5;
+		SELF_TRIG_MASK			<=	(others=>'0');
+		SELF_TRIG_SETTINGS	<=	"000000001000";
+		RESET_DLL_FLAG		<= "00000";
+		RESET_SELF_TRIG	<= '0';
+		ENABLE_LED 			<= '1';
+		ENABLE_CAL_SWITCH <= (others => '0'); 
+		SET_PSEC_MASK     <= "11111";
+		INSTRUCT_VALUE		<= (others=>'0');
+		INSTRUCT_PSEC_MASK<= (others=>'1');
+		INSTRUCT_CHAN_MASK<= (others=>'1');
+		INSTRUCTION			<= (others=>'0');
+		LAST_INSTRUCTION  <= (others=>'0');
+		INSTRUCT_BUSY		<= '0';
+		i := 0;
+		GET_INSTRUCTION_STATE <= WAIT_FOR_INSTRUCT;
+	
+	elsif falling_edge(xCLK_40MHz) and xALIGN_SUCCESS = '1' then
+		case GET_INSTRUCTION_STATE is
+		
+			when WAIT_FOR_INSTRUCT =>
+				RESET_DLL_FLAG		<= "00000";
+				RESET_SELF_TRIG	<= '0'; 
+				INSTRUCT_BUSY     <= '0';
+				INSTRUCT_PSEC_MASK<= (others=>'1');
+				CC_FIFO_STATUS <= "00000";
+				
+				if xINSTRUCT_FLAG = '1' then
+					i := i + 1;
+					if i > 2 then
+						i := 0;
+						LAST_LAST_INSTRUCTION <= LAST_INSTRUCTION;
+						INSTRUCT_BUSY			<= '1';
+						INSTRUCT_VALUE 		<= xINSTRUCT_WORD(11 downto 0);
+						INSTRUCT_PSEC_MASK	<= xINSTRUCT_WORD(27 downto 23);
+						--INSTRUCT_CHAN_MASK	<= xINSTRUCT_WORD(17 downto 12);
+						INSTRUCTION   			<= xINSTRUCT_WORD(19 downto 16); 
+						GET_INSTRUCTION_STATE <= TARGET;
+					end if;
+				end if;
+				
+			when TARGET =>
+				case INSTRUCTION(3 downto 0) is	
+					when x"1" =>
+						SET_DLL_VDD(0) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_DLL_VDD(1) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_DLL_VDD(2) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_DLL_VDD(3) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_DLL_VDD(4) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+
+						GET_INSTRUCTION_STATE <= DELAY;
+
+					when x"2" =>		
+						ENABLE_CAL_SWITCH <= (others => (INSTRUCT_VALUE(0)));
+						GET_INSTRUCTION_STATE <= DELAY;	
+						
+					--SET PED LEVEL
+					when x"3" =>   
+						--for j in 4 downto 0 loop
+							--if INSTRUCT_PSEC_MASK(j) = '1'  then
+						SET_VBIAS(0) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_VBIAS(1) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_VBIAS(2) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_VBIAS(3) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+						SET_VBIAS(4) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+							--end if;
+						--end loop;
+						GET_INSTRUCTION_STATE <= DELAY;
+						
+					--SOFTWARE DLL RESET
+					when x"4" =>
+						--for j in 4 downto 0 loop
+						--	if INSTRUCT_PSEC_MASK(j) = '1'  then
+								RESET_DLL_FLAG <= (others=>'1');
+						--	end if;
+						--end loop;
+						GET_INSTRUCTION_STATE <= DELAY;
+						
+					--TRIG RESET	
+					when x"5" =>
+						RESET_SELF_TRIG <= '1';
+						GET_INSTRUCTION_STATE <= DELAY;
+						
+					--TRIG SIGN
+					when x"6" =>
+						SELF_TRIG_MASK <= INSTRUCT_VALUE(11 downto 0);
+						GET_INSTRUCTION_STATE <= DELAY;
+						
+					--TRIG ENABLE
+					when x"7" =>
+						SELF_TRIG_SETTINGS <= INSTRUCT_VALUE(11 downto 0);
+						GET_INSTRUCTION_STATE <= DELAY;
+						
+					--SET TRIG THRESHOLD
+					when x"8" =>   
+						for j in 4 downto 0 loop
+							--if INSTRUCT_PSEC_MASK(j) = '1'  then
+								SET_TRIG_THRESH(j) <= x"0" & INSTRUCT_VALUE(11 downto 0);
+							--end if;
+						end loop;
+						GET_INSTRUCTION_STATE <= DELAY;
+					
+					--SET RO FEEDBACK TARGET
+					when x"9" =>   
+						for j in 4 downto 0 loop
+							if INSTRUCT_PSEC_MASK(j) = '1'  then
+								ADJUST_RO_TARGET(j) <= 	INSTRUCT_VALUE(11 downto 0) & x"0";
+							end if;
+						end loop;
+						GET_INSTRUCTION_STATE <= DELAY;
+					
+					--turn off/on LEDs for dark box 
+					when x"A" =>   	
+						ENABLE_LED <= INSTRUCT_VALUE(0);
+						GET_INSTRUCTION_STATE <= DELAY;
+					
+					--when x"B" =>
+						--for j in 4 downto 0 loop
+						--	CC_FIFO_STATUS(j) <= INSTRUCT_VALUE(0);
+						--end loop;	
+					--	GET_INSTRUCTION_STATE <= DELAY;
+					
+					when others =>
+						GET_INSTRUCTION_STATE <= DELAY;
+						--GET_INSTRUCTION_STATE <= WAIT_FOR_INSTRUCT;
+				
+				end case;
+				
+			when DELAY =>
+				LAST_INSTRUCTION     <= xINSTRUCT_WORD;
+				i := i + 1;
+				if i > 8 and xINSTRUCT_FLAG = '0' then
+					i := 0;
+					GET_INSTRUCTION_STATE <= WAIT_FOR_INSTRUCT;
+				end if;
+		end case;
+	end if;
+end process;
+
+end Behavioral;
+				
+				
+		
+		
