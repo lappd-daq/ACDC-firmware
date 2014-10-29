@@ -9,6 +9,7 @@ package Definition_Pool is
 constant STARTWORD	: std_logic_vector := x"1234";
 constant STARTWORD_8a	: std_logic_vector := x"B7";
 constant STARTWORD_8b	: std_logic_vector := x"34";
+constant PSEC_END_WORD : std_logic_vector := x"FACE";
 constant ENDWORD	: std_logic_vector := x"4321";
 constant INS_LENGTH : integer := 48;
 

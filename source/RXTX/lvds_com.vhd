@@ -302,12 +302,15 @@ variable mask_count : integer range 4 downto 0 := 0;
 				
 				when MESS_START =>	
 
-					if i > 1 and xREAD_TRIG_RATE_ONLY = '0' then
+				--	if i > 1 and xREAD_TRIG_RATE_ONLY = '0' then
+				--		i := 0;
+				--		LVDS_MESS_STATE <= INIT;	
+				--	elsif i > 1 and xREAD_TRIG_RATE_ONLY = '1' then
+				--		i := 0;
+				--		LVDS_MESS_STATE <= TRIG_RATE;	
+					if i > 1 then
 						i := 0;
 						LVDS_MESS_STATE <= INIT;	
-					elsif i > 1 and xREAD_TRIG_RATE_ONLY = '1' then
-						i := 0;
-						LVDS_MESS_STATE <= TRIG_RATE;	
 					else
 						GOOD_DATA 		<= STARTWORD;
 						XFER_BUSY      <= '1';
@@ -318,7 +321,8 @@ variable mask_count : integer range 4 downto 0 := 0;
 				when INIT =>
 					--GOOD_DATA 	<= x"F005";
 					if mask_count >= 5 then
-							LVDS_MESS_STATE <= MESS_END;
+							--LVDS_MESS_STATE <= MESS_END;
+							LVDS_MESS_STATE <= TRIG_RATE;
 					
 				--	elsif PSEC_MASK(mask_count) = '0' then			
 				--			mask_count := mask_count + 1;
@@ -384,7 +388,13 @@ variable mask_count : integer range 4 downto 0 := 0;
 				when INFO9 =>	
 					GOOD_DATA <= xINFO9(mask_count);	
 					LVDS_MESS_STATE <= PSEC_END;	
-					
+									
+				when PSEC_END =>
+					GOOD_DATA <= PSEC_END_WORD;
+					mask_count := mask_count + 1;
+					LVDS_MESS_STATE <= INIT;
+					--LVDS_MESS_STATE <= MESS_END;
+
 				when TRIG_RATE =>
 					if i > 29 then
 						i := 0;
@@ -393,13 +403,6 @@ variable mask_count : integer range 4 downto 0 := 0;
 						i := i+1;
 						GOOD_DATA <= xSELF_TRIG_RATE_COUNT(i)(15 downto 0);
 					end if;
-									
-					
-				when PSEC_END =>
-					GOOD_DATA <= (others=>'0');
-					mask_count := mask_count + 1;
-					LVDS_MESS_STATE <= INIT;
-					--LVDS_MESS_STATE <= MESS_END;
 					
 				when MESS_END =>	
 

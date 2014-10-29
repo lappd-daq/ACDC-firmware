@@ -119,7 +119,7 @@ entity AC_CONTROL is
 		PSEC_E_TOKin :  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0);		
 		--end--
 	
-		xEVENT_CNT				:  	out		EvtCnt_array;	--internal event counter
+		xEVENT_CNT				:  	out		Word_array;	--internal event counter
 			
 		xTRIG_SIGN				:	out		std_logic;		--global trig sign
 		xRO_FREQ					:	out		std_logic;		--global RO freq
@@ -316,8 +316,11 @@ component psec4_trigger_GLOBAL
 			xSELFTRIG_CLEAR		: out	std_logic;
 			
 			xRATE_ONLY				: out std_logic;
-				
-			xEVENT_CNT				: out std_logic_vector(EVT_CNT_SIZE-1 downto 0);
+
+			xPSEC4_TRIGGER_INFO_1: out Word_array;
+			xPSEC4_TRIGGER_INFO_2: out Word_array;
+			xPSEC4_TRIGGER_INFO_3: out Word_array;
+			
 			xSAMPLE_BIN				: out	std_logic_vector(3 downto 0);
 			xSELF_TRIG_RATES		: out rate_count_array;
 			xSELF_TRIG_SIGN		: out std_logic);
@@ -501,16 +504,16 @@ begin
 	PSEC_E_TOKin 		<=	TOKIN2(4) & TOKIN1(4);
 	
 	xTRIG_SIGN  <= SELF_TRIG_SIGN;
-	-----------------------------------------------------------------------------------------------
-   --info to send to DAQ
-	xTRIG_INFO(0)		<= "000" & SELF_TRIG_SIGN & xSELF_TRIGGER_SETTING;
-	xTRIG_INFO(1)		<= x"0" & xSELF_TRIGGER_MASK;
-	xSAMPLE_INFO(0)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(0) & "0";
-	xSAMPLE_INFO(1)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(1) & "0";
-	xSAMPLE_INFO(2)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(2) & "0";
-	xSAMPLE_INFO(3)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(3) & "0";
-	xSAMPLE_INFO(4)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(4) & "0";
-	-----------------------------------------------------------------------------------------------
+--	-----------------------------------------------------------------------------------------------
+--   --info to send to DAQ
+--	xTRIG_INFO(0)		<= "000" & SELF_TRIG_SIGN & xSELF_TRIGGER_SETTING;
+--	xTRIG_INFO(1)		<= x"0" & xSELF_TRIGGER_MASK;
+--	xSAMPLE_INFO(0)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(0) & "0";
+--	xSAMPLE_INFO(1)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(1) & "0";
+--	xSAMPLE_INFO(2)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(2) & "0";
+--	xSAMPLE_INFO(3)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(3) & "0";
+--	xSAMPLE_INFO(4)	<= x"00" & "000" &	SAMPLE_BIN_LOCATION(4) & "0";
+--	-----------------------------------------------------------------------------------------------
 	AC_TIMING_CONTROL	:	for i in 4 downto 0 generate
 		psec4_timing_control	:	psec4_control
 		port map(
@@ -586,8 +589,11 @@ begin
 			xSELFTRIG_CLEAR	=>  self_trigger_clear_flag,
 			
 			xRATE_ONLY			=> xRATE_ONLY,
+
+			xPSEC4_TRIGGER_INFO_1	=> xTRIG_INFO,
+			xPSEC4_TRIGGER_INFO_2	=> xSAMPLE_INFO,
+			xPSEC4_TRIGGER_INFO_3	=>	xEVENT_CNT,
 			
-			xEVENT_CNT			=>	xEVENT_CNT(0),
 			xSAMPLE_BIN			=> SAMPLE_BIN_LOCATION(0),
 			xSELF_TRIG_RATES	=> xSELF_TRIG_RATES,
 			xSELF_TRIG_SIGN   => SELF_TRIG_SIGN);
