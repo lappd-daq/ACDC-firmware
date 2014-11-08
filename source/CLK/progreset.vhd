@@ -23,8 +23,8 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
 entity PROGRESET is
     Port ( 	CLK     : 	in std_logic; 		-- CLOCK	48MHz
-         -- 	WAKEUP  : 	in std_logic; 		-- Active High Powered up USB
-			Clr_all : 	out std_logic; 	-- Active High Clr_all
+          	WAKEUP  : 	in std_logic; 		
+				Clr_all : 	out std_logic; 	-- Active High Clr_all
            	GLRST   : 	out std_logic); 	-- RESET low-active
 end PROGRESET;
 
@@ -35,8 +35,16 @@ end PROGRESET;
 architecture Behavioral of PROGRESET is
 	type State_type is(RESETD, NORMAL);
 	signal state: State_type;	
+
+	type		System_reset is (RESETS, NORMALS);
+	signal   reset_state : System_reset;
+	
 	signal POS_COUNTER 	: 	std_logic_vector(31 downto 0) := (others=>'0');
 	signal POS_LOGIC		:	std_logic	:= '0';
+	 
+	signal led_reset  	:	std_logic := '0';
+	signal led_temp  		:	std_logic := '0';	
+	signal led_temp_temp :	std_logic;	
 	
 begin
 	
@@ -61,10 +69,43 @@ begin
 		end if;
 	end process;
 		
+	process(CLK, WAKEUP)
+	begin
+		if led_reset = '1' then
+			led_temp <= '0';
+		elsif rising_edge(WAKEUP) then
+			led_temp <= '1';		
+		end if;
+	end process;
+	process(CLK, led_temp)
+	variable i : integer range 100010 downto 0 := 0;	
+		begin
+		if led_temp = '0' then
+			led_temp_temp <= '0';
+			led_reset <= '0';
+			i := 0;
+			reset_state <= RESETS;
+		elsif rising_edge(CLK) and led_temp = '1' then
+			case reset_state is
+				when RESETS =>
+					if i > 100000 then
+						i := 0;
+						led_temp_temp <= '0';
+						reset_state <= NORMALS;
+					else
+						i := i + 1;
+						led_temp_temp <= '1';
+					end if;
+					
+				when NORMALS =>
+					led_reset <= '1';
+			end case;
+		end if;
+	end process;
 	
 	process(POS_LOGIC) 
 	begin	
-		if POS_LOGIC = '0' then
+		if POS_LOGIC = '0' or led_temp_temp = '1' then
 				GLRST 	<= '0';
 				Clr_all 	<= '1';
 		else
@@ -74,7 +115,6 @@ begin
 	end process;
 
 end Behavioral;
-
 --------------------------------------------------------------------------------
 --   			                 	The End        						   	         --
 --------------------------------------------------------------------------------

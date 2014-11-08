@@ -20,9 +20,9 @@ applicable agreement for further details.
 */
 (header "symbol" (version "1.1"))
 (symbol
-	(rect 16 16 408 416)
+	(rect 16 16 408 448)
 	(text "lvds_com" (rect 5 0 45 12)(font "Arial" ))
-	(text "inst" (rect 8 384 20 396)(font "Arial" ))
+	(text "inst" (rect 8 416 20 428)(font "Arial" ))
 	(port
 		(pt 0 32)
 		(input)
@@ -166,16 +166,23 @@ applicable agreement for further details.
 	(port
 		(pt 0 352)
 		(input)
-		(text "xREAD_TRIG_RATE_ONLY" (rect 0 0 133 12)(font "Arial" ))
-		(text "xREAD_TRIG_RATE_ONLY" (rect 21 347 154 359)(font "Arial" ))
+		(text "xREAD_ADC_DATA" (rect 0 0 99 12)(font "Arial" ))
+		(text "xREAD_ADC_DATA" (rect 21 347 120 359)(font "Arial" ))
 		(line (pt 0 352)(pt 16 352)(line_width 1))
 	)
 	(port
 		(pt 0 368)
 		(input)
+		(text "xREAD_TRIG_RATE_ONLY" (rect 0 0 133 12)(font "Arial" ))
+		(text "xREAD_TRIG_RATE_ONLY" (rect 21 363 154 375)(font "Arial" ))
+		(line (pt 0 368)(pt 16 368)(line_width 1))
+	)
+	(port
+		(pt 0 384)
+		(input)
 		(text "xSELF_TRIG_RATE_COUNT[29..0][15..0]" (rect 0 0 182 12)(font "Arial" ))
-		(text "xSELF_TRIG_RATE_COUNT[29..0][15..0]" (rect 21 363 203 375)(font "Arial" ))
-		(line (pt 0 368)(pt 16 368)(line_width 3))
+		(text "xSELF_TRIG_RATE_COUNT[29..0][15..0]" (rect 21 379 203 391)(font "Arial" ))
+		(line (pt 0 384)(pt 16 384)(line_width 3))
 	)
 	(port
 		(pt 392 32)
@@ -248,6 +255,6 @@ applicable agreement for further details.
 		(line (pt 392 176)(pt 376 176)(line_width 1))
 	)
 	(drawing
-		(rectangle (rect 16 16 376 384)(line_width 1))
+		(rectangle (rect 16 16 376 416)(line_width 1))
 	)
 )

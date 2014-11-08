@@ -110,8 +110,8 @@ applicable agreement for further details.
 	(port
 		(pt 400 128)
 		(output)
-		(text "xSELF_TRIG_MASK[11..0]" (rect 0 0 116 12)(font "Arial" ))
-		(text "xSELF_TRIG_MASK[11..0]" (rect 263 123 379 135)(font "Arial" ))
+		(text "xSELF_TRIG_MASK[29..0]" (rect 0 0 119 12)(font "Arial" ))
+		(text "xSELF_TRIG_MASK[29..0]" (rect 260 123 379 135)(font "Arial" ))
 		(line (pt 400 128)(pt 384 128)(line_width 3))
 	)
 	(port
@@ -169,6 +169,13 @@ applicable agreement for further details.
 		(text "xSET_DLL_VDD[4..0][15..0]" (rect 0 0 121 12)(font "Arial" ))
 		(text "xSET_DLL_VDD[4..0][15..0]" (rect 258 251 379 263)(font "Arial" ))
 		(line (pt 400 256)(pt 384 256)(line_width 3))
+	)
+	(port
+		(pt 400 272)
+		(output)
+		(text "xGLOBAL_RESET" (rect 0 0 84 12)(font "Arial" ))
+		(text "xGLOBAL_RESET" (rect 295 267 379 279)(font "Arial" ))
+		(line (pt 400 272)(pt 384 272)(line_width 1))
 	)
 	(drawing
 		(rectangle (rect 16 16 384 288)(line_width 1))
