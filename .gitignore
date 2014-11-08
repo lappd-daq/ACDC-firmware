@@ -14,6 +14,15 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 
+#altera generated files
+/db
+/incremental_db
+*.flow.rpt
+*.map.rpt
+*.map.summary
+*.done
+
+
 # =========================
 # Operating System Files
 # =========================

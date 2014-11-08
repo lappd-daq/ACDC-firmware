@@ -171,7 +171,7 @@ entity AC_CONTROL is
 		xSET_DLL_VDD3				:	in	std_logic_vector(11 downto 0);
 		xSET_DLL_VDD4				:	in	std_logic_vector(11 downto 0);	--...end
 
-		xSELF_TRIGGER_MASK		: in 	std_logic_vector(11 downto 0);
+		xSELF_TRIGGER_MASK		: in 	std_logic_vector(29 downto 0);
 		xSELF_TRIGGER_SETTING	: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
 		
 		xCLK_10Hz				: in	std_logic;
@@ -302,7 +302,7 @@ component psec4_trigger_GLOBAL
 			xSELFTRIG_3				: in	std_logic_vector(5 downto 0); --internal trig sgnl
 			xSELFTRIG_4 			: in	std_logic_vector(5 downto 0); --internal trig sgnl
 			
-			xSELF_TRIGGER_MASK	: in 	std_logic_vector(11 downto 0);
+			xSELF_TRIGGER_MASK	: in 	std_logic_vector(29 downto 0);
 			xSELF_TRIGGER_SETTING: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
 
 			xRESET_TRIG_FLAG		: in	std_logic;
