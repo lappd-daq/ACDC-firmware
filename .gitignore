@@ -17,11 +17,17 @@ $RECYCLE.BIN/
 #altera generated files
 /db
 /incremental_db
-*.flow.rpt
-*.map.rpt
-*.map.summary
+*.rpt
+*.summary
 *.done
-
+*.pin
+*.sof
+*.jic
+*.smsg
+*.pof
+*.jdi
+*.map
+*.cdf
 
 # =========================
 # Operating System Files
