@@ -39,7 +39,8 @@ entity decode_instruct is
 		xSYSTEM_CLOCK_COUNTER:  out	Word_array;
 		xSYSTEM_INSTRUCTION	:	out	Word_array;
 		xSET_DLL_VDD			:	out	Word_array;
-		xGLOBAL_RESET			: 	out	std_logic);
+		xGLOBAL_RESET			: 	out	std_logic;
+		xTRIG_VALID				:  out   std_logic);
 end decode_instruct;
 
 architecture Behavioral of decode_instruct is
@@ -71,6 +72,7 @@ architecture Behavioral of decode_instruct is
 		signal LAST_LAST_INSTRUCTION:		std_logic_vector(31 downto 0);
 		signal EVENT_COUNT			:		std_logic_vector(31 downto 0);
 		signal GLOBAL_RESET			: 		std_logic := '0';
+		signal TRIG_VALID				: 		std_logic := '0';
 		
 		
 begin
@@ -99,6 +101,7 @@ begin
 		xSYSTEM_INSTRUCTION(3) 	<= LAST_LAST_INSTRUCTION(31 downto 16);
 		xSYSTEM_INSTRUCTION(4) 	<= (others => '0');
 		xGLOBAL_RESET				<= GLOBAL_RESET;
+		xTRIG_VALID  				<= TRIG_VALID;
 		
 --driver for 48 bit system clock/timestamp mangement
 process(xCLR_ALL, xCLK_40MHz, RESET_DLL_FLAG)
@@ -264,25 +267,33 @@ begin
 							end if;
 						end loop;
 						GET_INSTRUCTION_STATE <= DELAY;
-					
+					 
 					when set_led_enable_instruct =>   	
 						ENABLE_LED <= INSTRUCT_VALUE(0);
 						GET_INSTRUCTION_STATE <= DELAY;
-					
-					--when x"B" =>
-						--for j in 4 downto 0 loop
-						--	CC_FIFO_STATUS(j) <= INSTRUCT_VALUE(0);
-						--end loop;	
-					--	GET_INSTRUCTION_STATE <= DELAY;
-					
+	
+					when system_setting_instruct =>
+						case INSTRUCT_VALUE(2 downto 0) is 
+							when "111" => 
+								TRIG_VALID <= '1';
+								GET_INSTRUCTION_STATE <= DELAY;
+
+							when others =>
+								TRIG_VALID <= '0';
+								GET_INSTRUCTION_STATE <= DELAY;
+						end case;
+						
 					when others =>
-						GET_INSTRUCTION_STATE <= DELAY;
-						--GET_INSTRUCTION_STATE <= WAIT_FOR_INSTRUCT;
+						i := i + 1;
+						if i > 8 and xINSTRUCT_FLAG = '0' then
+							i := 0;
+							GET_INSTRUCTION_STATE <= WAIT_FOR_INSTRUCT;		
+						end if;	
 				
 				end case;
 				
 			when DELAY =>
-				LAST_INSTRUCTION     <= xINSTRUCT_WORD;
+				LAST_INSTRUCTION <= xINSTRUCT_WORD;
 				i := i + 1;
 				if i > 8 and xINSTRUCT_FLAG = '0' then
 					i := 0;

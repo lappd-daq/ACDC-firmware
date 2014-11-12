@@ -39,6 +39,7 @@ entity psec4_trigger_GLOBAL is
 			
 			xDLL_RESET				: in	std_logic;
 			xPLL_LOCK				: in	std_logic;
+			xTRIG_VALID   			: in	std_logic;
 			
 			xTRIGGER_OUT			: out	std_logic;
 			xSTART_ADC				: out std_logic;
@@ -176,12 +177,12 @@ begin  -- Behavioral
 ----------------------------------------------------------
 --packet-ize some meta-data
 ----------------------------------------------------------
-xPSEC4_TRIGGER_INFO_1(0)(3 downto 0) <= BIN_COUNT_SAVE;  --fine timestamp (rising)
-xPSEC4_TRIGGER_INFO_1(0)(7 downto 4) <= BIN_COUNT_SAVE2; --fine timestamp (falling)
+xPSEC4_TRIGGER_INFO_1(0)(3 downto 0)  <= BIN_COUNT_SAVE;  --fine timestamp (rising)
+xPSEC4_TRIGGER_INFO_1(0)(7 downto 4)  <= BIN_COUNT_SAVE2; --fine timestamp (falling)
 xPSEC4_TRIGGER_INFO_1(0)(15 downto 8) <= (others=> '0');
 xPSEC4_TRIGGER_INFO_1(1)(11 downto 0) <= xSELF_TRIGGER_SETTING;
-xPSEC4_TRIGGER_INFO_1(2) <= EVENT_CNT(15 downto 0);
-xPSEC4_TRIGGER_INFO_1(3) <= EVENT_CNT(31 downto 16);
+xPSEC4_TRIGGER_INFO_1(2)(15 downto 0) <= EVENT_CNT(15 downto 0);
+xPSEC4_TRIGGER_INFO_1(3)(15 downto 0) <= EVENT_CNT(31 downto 16);
 
 xPSEC4_TRIGGER_INFO_2(0)(15 downto 0) <= trig_latch1(15 downto 0);
 xPSEC4_TRIGGER_INFO_2(1)(15 downto 0) <= "00" & trig_latch1(29 downto 16);
@@ -192,8 +193,8 @@ xPSEC4_TRIGGER_INFO_2(4)(15 downto 0) <= trig_latch3(15 downto 0);
 xPSEC4_TRIGGER_INFO_3(0)(15 downto 0) <= "00" & trig_latch3(29 downto 16);
 xPSEC4_TRIGGER_INFO_3(1)(15 downto 0) <= trig_latch4(15 downto 0);
 xPSEC4_TRIGGER_INFO_3(2)(15 downto 0) <= "00" & trig_latch4(29 downto 16);
-xPSEC4_TRIGGER_INFO_3(3) <= SELF_TRIGGER_MASK(15 downto 0);
-xPSEC4_TRIGGER_INFO_3(4) <= "00" & SELF_TRIGGER_MASK(29 downto 16);
+xPSEC4_TRIGGER_INFO_3(3)(15 downto 0) <= SELF_TRIGGER_MASK(15 downto 0);
+xPSEC4_TRIGGER_INFO_3(4)(15 downto 0) <= "00" & SELF_TRIGGER_MASK(29 downto 16);
 
 ----------------------------------------------------------	
 --implement crude event counter
@@ -323,7 +324,7 @@ process( xTRIG_CLK, SELF_TRIGGER_LATCHED,
 			SELF_TRIG_EN, xCLR_ALL, xDONE, SELF_TRIG_CLR)
 begin	
 	if xCLR_ALL = '1'  or xDONE = '1' or SELF_TRIG_EN = '0' or SELF_TRIG_CLR = '1' 
-		or RESET_TRIG_FROM_SOFTWARE = '1' then
+		or RESET_TRIG_FROM_SOFTWARE = '1' or xTRIG_VALID = '0' then
 		--
 		SELF_TRIG_EXT_HI <= '0';
 		SELF_TRIG_EXT_LO <= '0';

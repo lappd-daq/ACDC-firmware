@@ -175,7 +175,8 @@ entity AC_CONTROL is
 		xSELF_TRIGGER_SETTING	: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
 		
 		xCLK_10Hz				: in	std_logic;
-					
+		xTRIG_VALID				: in 	std_logic;
+		
 		MONITOR_PSEC0	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC1	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC2	:	out	std_logic_vector(23 downto 0);
@@ -309,6 +310,7 @@ component psec4_trigger_GLOBAL
 			
 			xDLL_RESET				: in	std_logic;
 			xPLL_LOCK				: in	std_logic;
+			xTRIG_VALID   			: in	std_logic;
 						
 			xTRIGGER_OUT			: out	std_logic;
 			xSTART_ADC				: out std_logic;
@@ -582,6 +584,7 @@ begin
 			
 			xDLL_RESET			=>	DLL_RESET(0),
 			xPLL_LOCK			=>	xPLL_LOCK,
+			xTRIG_VALID   		=> xTRIG_VALID,
 			
 			xTRIGGER_OUT		=> trigger_flag,
 			xSTART_ADC			=>  start_adc_flag,

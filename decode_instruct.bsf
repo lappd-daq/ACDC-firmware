@@ -1,0 +1,190 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2012 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.1"))
+(symbol
+	(rect 16 16 416 352)
+	(text "decode_instruct" (rect 5 0 67 12)(font "Arial" ))
+	(text "inst" (rect 8 320 20 332)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "xCLR_ALL" (rect 0 0 51 12)(font "Arial" ))
+		(text "xCLR_ALL" (rect 21 27 72 39)(font "Arial" ))
+		(line (pt 0 32)(pt 16 32)(line_width 1))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "xINSTRUCT_FLAG" (rect 0 0 87 12)(font "Arial" ))
+		(text "xINSTRUCT_FLAG" (rect 21 43 108 55)(font "Arial" ))
+		(line (pt 0 48)(pt 16 48)(line_width 1))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "xCLK_40MHz" (rect 0 0 60 12)(font "Arial" ))
+		(text "xCLK_40MHz" (rect 21 59 81 71)(font "Arial" ))
+		(line (pt 0 64)(pt 16 64)(line_width 1))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "xINSTRUCT_WORD[31..0]" (rect 0 0 116 12)(font "Arial" ))
+		(text "xINSTRUCT_WORD[31..0]" (rect 21 75 137 87)(font "Arial" ))
+		(line (pt 0 80)(pt 16 80)(line_width 3))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "xALIGN_SUCCESS" (rect 0 0 87 12)(font "Arial" ))
+		(text "xALIGN_SUCCESS" (rect 21 91 108 103)(font "Arial" ))
+		(line (pt 0 96)(pt 16 96)(line_width 1))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "xTRIGGER" (rect 0 0 50 12)(font "Arial" ))
+		(text "xTRIGGER" (rect 21 107 71 119)(font "Arial" ))
+		(line (pt 0 112)(pt 16 112)(line_width 1))
+	)
+	(port
+		(pt 400 32)
+		(output)
+		(text "xRESET_DLL_FLAG[4..0]" (rect 0 0 118 12)(font "Arial" ))
+		(text "xRESET_DLL_FLAG[4..0]" (rect 261 27 379 39)(font "Arial" ))
+		(line (pt 400 32)(pt 384 32)(line_width 3))
+	)
+	(port
+		(pt 400 48)
+		(output)
+		(text "xSET_TRIG_THRESH[4..0][15..0]" (rect 0 0 145 12)(font "Arial" ))
+		(text "xSET_TRIG_THRESH[4..0][15..0]" (rect 234 43 379 55)(font "Arial" ))
+		(line (pt 400 48)(pt 384 48)(line_width 3))
+	)
+	(port
+		(pt 400 64)
+		(output)
+		(text "xSET_VBIAS[4..0][15..0]" (rect 0 0 105 12)(font "Arial" ))
+		(text "xSET_VBIAS[4..0][15..0]" (rect 274 59 379 71)(font "Arial" ))
+		(line (pt 400 64)(pt 384 64)(line_width 3))
+	)
+	(port
+		(pt 400 80)
+		(output)
+		(text "xADJUST_RO_TARGET[4..0][15..0]" (rect 0 0 158 12)(font "Arial" ))
+		(text "xADJUST_RO_TARGET[4..0][15..0]" (rect 221 75 379 87)(font "Arial" ))
+		(line (pt 400 80)(pt 384 80)(line_width 3))
+	)
+	(port
+		(pt 400 96)
+		(output)
+		(text "xSELF_TRIG_SETTINGS[11..0]" (rect 0 0 134 12)(font "Arial" ))
+		(text "xSELF_TRIG_SETTINGS[11..0]" (rect 245 91 379 103)(font "Arial" ))
+		(line (pt 400 96)(pt 384 96)(line_width 3))
+	)
+	(port
+		(pt 400 112)
+		(output)
+		(text "xRESET_SELF_TRIG" (rect 0 0 99 12)(font "Arial" ))
+		(text "xRESET_SELF_TRIG" (rect 280 107 379 119)(font "Arial" ))
+		(line (pt 400 112)(pt 384 112)(line_width 1))
+	)
+	(port
+		(pt 400 128)
+		(output)
+		(text "xSELF_TRIG_MASK[29..0]" (rect 0 0 119 12)(font "Arial" ))
+		(text "xSELF_TRIG_MASK[29..0]" (rect 260 123 379 135)(font "Arial" ))
+		(line (pt 400 128)(pt 384 128)(line_width 3))
+	)
+	(port
+		(pt 400 144)
+		(output)
+		(text "xSET_PSEC_MASK[4..0]" (rect 0 0 112 12)(font "Arial" ))
+		(text "xSET_PSEC_MASK[4..0]" (rect 267 139 379 151)(font "Arial" ))
+		(line (pt 400 144)(pt 384 144)(line_width 3))
+	)
+	(port
+		(pt 400 160)
+		(output)
+		(text "xINSTRUCT_BUSY" (rect 0 0 86 12)(font "Arial" ))
+		(text "xINSTRUCT_BUSY" (rect 293 155 379 167)(font "Arial" ))
+		(line (pt 400 160)(pt 384 160)(line_width 1))
+	)
+	(port
+		(pt 400 176)
+		(output)
+		(text "xCC_FIFO_STATUS[4..0]" (rect 0 0 112 12)(font "Arial" ))
+		(text "xCC_FIFO_STATUS[4..0]" (rect 267 171 379 183)(font "Arial" ))
+		(line (pt 400 176)(pt 384 176)(line_width 3))
+	)
+	(port
+		(pt 400 192)
+		(output)
+		(text "xENABLE_LED" (rect 0 0 71 12)(font "Arial" ))
+		(text "xENABLE_LED" (rect 308 187 379 199)(font "Arial" ))
+		(line (pt 400 192)(pt 384 192)(line_width 1))
+	)
+	(port
+		(pt 400 208)
+		(output)
+		(text "xENABLE_CAL_SWITCH[14..0]" (rect 0 0 142 12)(font "Arial" ))
+		(text "xENABLE_CAL_SWITCH[14..0]" (rect 237 203 379 215)(font "Arial" ))
+		(line (pt 400 208)(pt 384 208)(line_width 3))
+	)
+	(port
+		(pt 400 224)
+		(output)
+		(text "xSYSTEM_CLOCK_COUNTER[4..0][15..0]" (rect 0 0 185 12)(font "Arial" ))
+		(text "xSYSTEM_CLOCK_COUNTER[4..0][15..0]" (rect 194 219 379 231)(font "Arial" ))
+		(line (pt 400 224)(pt 384 224)(line_width 3))
+	)
+	(port
+		(pt 400 240)
+		(output)
+		(text "xSYSTEM_INSTRUCTION[4..0][15..0]" (rect 0 0 161 12)(font "Arial" ))
+		(text "xSYSTEM_INSTRUCTION[4..0][15..0]" (rect 218 235 379 247)(font "Arial" ))
+		(line (pt 400 240)(pt 384 240)(line_width 3))
+	)
+	(port
+		(pt 400 256)
+		(output)
+		(text "xSET_DLL_VDD[4..0][15..0]" (rect 0 0 121 12)(font "Arial" ))
+		(text "xSET_DLL_VDD[4..0][15..0]" (rect 258 251 379 263)(font "Arial" ))
+		(line (pt 400 256)(pt 384 256)(line_width 3))
+	)
+	(port
+		(pt 400 272)
+		(output)
+		(text "xGLOBAL_RESET" (rect 0 0 84 12)(font "Arial" ))
+		(text "xGLOBAL_RESET" (rect 295 267 379 279)(font "Arial" ))
+		(line (pt 400 272)(pt 384 272)(line_width 1))
+	)
+	(port
+		(pt 400 288)
+		(output)
+		(text "xTRIG_VALID" (rect 0 0 66 12)(font "Arial" ))
+		(text "xTRIG_VALID" (rect 313 283 379 295)(font "Arial" ))
+		(line (pt 400 288)(pt 384 288)(line_width 1))
+	)
+	(drawing
+		(rectangle (rect 16 16 384 320)(line_width 1))
+	)
+)
