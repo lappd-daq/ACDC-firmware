@@ -21,15 +21,15 @@ create_clock 	-period "25.000 ns"   [get_ports clk_local_200]
 				 
 #create_clock -period 320MHz -name {xCLK}
 					
-create_clock -period 10MHz 	[get_ports PSEC_A_RD_CLK]
+create_clock -period 40MHz 	[get_ports PSEC_A_RD_CLK]
 					
-create_clock -period 10MHz 	[get_ports PSEC_B_RD_CLK]
+create_clock -period 40MHz 	[get_ports PSEC_B_RD_CLK]
 
-create_clock -period 10MHz 	[get_ports PSEC_C_RD_CLK]
+create_clock -period 40MHz 	[get_ports PSEC_C_RD_CLK]
 					
-create_clock -period 10MHz 	[get_ports PSEC_D_RD_CLK]
+create_clock -period 40MHz 	[get_ports PSEC_D_RD_CLK]
 
-create_clock -period 10MHz 	[get_ports PSEC_E_RD_CLK]
+create_clock -period 40MHz 	[get_ports PSEC_E_RD_CLK]
 
 #create_clock [get_ports lvds_rx_in(1)]
 

@@ -62,15 +62,18 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 -------------------------------------------------------------------------------
 -- SIGNALS 
 -------------------------------------------------------------------------------	
-	type 	HANDLE_TRIG_TYPE	is (WAIT_FOR_COINCIDENCE, WAIT_FOR_SYSTEM, SELF_RATE_ONLY,
+	type 	HANDLE_TRIG_TYPE	is (WAIT_FOR_COINCIDENCE, WAIT_FOR_SYSTEM, 
 											SELF_START_ADC, SELF_RESET, SELF_DONE);
 	signal	HANDLE_TRIG_STATE	:	HANDLE_TRIG_TYPE;
 	
 	type 	RESET_TRIG_TYPE	is (RESETT, RELAXT);
 	signal	RESET_TRIG_STATE:	RESET_TRIG_TYPE;
 	
+	--type to generate scaler mode based of 1 Hz clock
 	type COUNT_RATE_TYPE    is (SELF_COUNT, SELF_COUNT_LATCH, SELF_COUNT_RESET);
 	signal	COUNT_RATE_OF_SELFTRIG :	COUNT_RATE_TYPE;
+	signal   SCALER_MODE_STATE		  :   COUNT_RATE_TYPE;
+	signal   SCALER_MODE_LATCH_STATE:   COUNT_RATE_TYPE;
 
 	type REG_TRIG_BITS_STATE_TYPE is (TRIG1, TRIG2, TRIG3, TRIG4, DONE5);
 	signal REG_TRIG_BITS_STATE : REG_TRIG_BITS_STATE_TYPE  ;
@@ -85,6 +88,7 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal CLK_40				:  std_logic;
 	
 	signal SELF_TRIGGER   				: std_logic_vector (29 downto 0); 	-- self trigger bits
+	signal SCALER_LATCH					: std_logic_vector (29 downto 0);	
 	signal SELF_TRIGGER_LATCHED		: std_logic_vector (29 downto 0); 	-- latched self trigger bits
 	signal SELF_TRIGGER_CLOCKED		: std_logic_vector (29 downto 0); 	-- latched self trigger bits
 
@@ -110,6 +114,7 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal RESET_TRIG_COUNT				:	std_logic := '1';      -- trig clear signals
 	signal RESET_TRIG_FROM_FIRMWARE_FLAG :  std_logic;
 	signal SELF_TRIG_CLR					:  std_logic;
+	signal reset_trig_from_scaler_mode: std_logic;
 	
 	signal SELF_WAIT_FOR_SYS_TRIG    : std_logic;
 	signal SELF_TRIG_RATE_ONLY 		: std_logic;
@@ -170,7 +175,7 @@ begin  -- Behavioral
 	--
 	xSTART_ADC <= CC_TRIG_START_ADC or SELF_TRIGGER_START_ADC;
 	--
-	xSELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE;	
+	xSELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE or reset_trig_from_scaler_mode;	
 	--
 	xSELF_TRIG_RATES <= SELF_COUNT_RATE_LATCH;
 	--
@@ -324,17 +329,17 @@ process( xTRIG_CLK, SELF_TRIGGER_LATCHED,
 			SELF_TRIG_EN, xCLR_ALL, xDONE, SELF_TRIG_CLR)
 begin	
 	if xCLR_ALL = '1'  or xDONE = '1' or SELF_TRIG_EN = '0' or SELF_TRIG_CLR = '1' 
-		or RESET_TRIG_FROM_SOFTWARE = '1' or xTRIG_VALID = '0' then
+		or SELF_TRIG_RATE_ONLY = '1' or RESET_TRIG_FROM_SOFTWARE = '1' or xTRIG_VALID = '0' then
 		--
 		SELF_TRIG_EXT_HI <= '0';
 		SELF_TRIG_EXT_LO <= '0';
 		--
-	--latch self-trigger signal from SELF_TRIGGER_WRAPPER
-	elsif rising_edge(xTRIG_CLK) and SELF_TRIGGER_LATCHED_OR = '1'  then
+	--latch self-trigger signal from SELF_TRIGGER_WRAPPER or tag system trigger, depending on source
+	elsif rising_edge(xTRIG_CLK) and (SELF_TRIGGER_LATCHED_OR = '1' or CC_TRIG = '1') then
 		--
 		SELF_TRIG_EXT_HI <= 	'1';    
 		--
-	elsif falling_edge(xTRIG_CLK) and SELF_TRIGGER_LATCHED_OR = '1'  then
+	elsif falling_edge(xTRIG_CLK) and (SELF_TRIGGER_LATCHED_OR = '1' or CC_TRIG = '1')  then
 		--
 		SELF_TRIG_EXT_LO <= 	'1';    
 		--
@@ -347,11 +352,11 @@ end process;
 process(CLK_40, xCLR_ALL, xDONE)
 variable i : integer range 100 downto -1 := 0;
 begin
-	if xCLR_ALL = '1' or xDONE = '1' or SELF_TRIG_EXT = '0' then
+	if xCLR_ALL = '1' or xDONE = '1' or SELF_TRIG_EXT = '0' or
+		SELF_TRIG_RATE_ONLY = '1' then
 		i := 0;
 		SELF_TRIGGER_START_ADC <= '0';
 		RESET_TRIG_FROM_FIRMWARE_FLAG <= '0';
-		COUNT_RATE <= '0';
 		HANDLE_TRIG_STATE <= WAIT_FOR_COINCIDENCE;
 
 	elsif rising_edge(CLK_40) then	
@@ -362,11 +367,10 @@ begin
 				--	i := 0;
 				if SELF_WAIT_FOR_SYS_TRIG = '1' and SELF_TRIG_EXT = '1'  then
 					HANDLE_TRIG_STATE <= WAIT_FOR_SYSTEM;
-				elsif SELF_TRIG_RATE_ONLY = '1' and SELF_TRIG_EXT = '1'then
-					HANDLE_TRIG_STATE <= SELF_RATE_ONLY;
-				elsif SELF_TRIG_EXT = '1' and SELF_TRIG_RATE_ONLY = '0' 
-						and SELF_WAIT_FOR_SYS_TRIG = '0' then
+
+				elsif SELF_TRIG_EXT = '1' and SELF_WAIT_FOR_SYS_TRIG = '0' then
 					HANDLE_TRIG_STATE <= SELF_START_ADC;
+				
 				end if;
 				
 			when WAIT_FOR_SYSTEM => 
@@ -383,16 +387,7 @@ begin
 			when SELF_START_ADC =>
 				SELF_TRIGGER_START_ADC <= '1';
 				---ends case
-				
-			when SELF_RATE_ONLY =>
-				if i >= 1 then
-					i := 0;
-					HANDLE_TRIG_STATE <= SELF_RESET;
-				else
-					i := i + 1;
-					COUNT_RATE <= '1';
-				end if;
-				
+							
 			when SELF_RESET =>
 				if i > 2 then
 					i := 0;
@@ -403,7 +398,6 @@ begin
 				end if;
 				
 			when SELF_DONE =>
-				COUNT_RATE <= '0';
 				RESET_TRIG_FROM_FIRMWARE_FLAG <= '0';
 				---ends case
 			
@@ -413,47 +407,92 @@ end process;
 
 ----------------------------------------------------------	
 --process to measure trigger rates ('scaler' mode)
-process(xCLR_ALL, CLK_40, COUNT_RATE, SELF_COUNT_sig, 
-		SELF_COUNT_LATCH_sig, SELF_COUNT_RESET_sig, 
-		SELF_TRIGGER_LATCHED)
+process(xCLR_ALL, CLK_40, SELF_TRIG_RATE_ONLY, SELF_COUNT_sig, 
+		SELF_COUNT_LATCH_sig)
+variable i : integer range 100 downto -1  := 0;
 begin
-	if xCLR_ALL = '1' or SELF_TRIG_RATE_ONLY = '0' then
+	if xCLR_ALL = '1' then
+		i:=0;
 		for ii in 29 downto 0 loop
 			SELF_COUNT_RATE(ii)(15 downto 0) <= (others=>'0');
 			SELF_COUNT_RATE_LATCH(ii)(15 downto 0) <= (others=>'0');
 		end loop;
-	elsif SELF_COUNT_sig = '1' then
-		--if falling_edge(COUNT_RATE) then 
-		if falling_edge(CLK_40) and COUNT_RATE = '1' then
-			for ii in 29 downto 0 loop
-				SELF_COUNT_RATE(ii)(15 downto 0) <= SELF_COUNT_RATE(ii)(15 downto 0) + 
-				("00000000000000"&SELF_TRIGGER_LATCHED(ii));
-			end loop;
-		end if;
-	
-	elsif (SELF_COUNT_sig = '0' and SELF_COUNT_LATCH_sig = '1' 
-		and SELF_COUNT_RESET_sig = '0') then
+		SCALER_MODE_STATE <= SELF_COUNT;
+		SCALER_MODE_LATCH_STATE <= SELF_COUNT;
+		reset_trig_from_scaler_mode <= '0';
 		
-		SELF_COUNT_RATE_LATCH <= SELF_COUNT_RATE;
-	
-	elsif SELF_COUNT_sig = '0' and SELF_COUNT_LATCH_sig = '0' 
-			and SELF_COUNT_RESET_sig = '1' then
-		
-			for ii in 29 downto 0 loop
-				SELF_COUNT_RATE(ii)(15 downto 0) <= (others=>'0');
-			end loop;
-	end if;
-end process;
+	-- 'counting mode':
+ 	elsif falling_edge(CLK_40) and SELF_COUNT_LATCH_sig = '0' and SELF_COUNT_sig = '1' then
+		                          --SELF_COUNT_sig driven from process below w.r.t 1Hz slow counting clock
+		SCALER_MODE_LATCH_STATE <= SELF_COUNT;
 
+		case SCALER_MODE_STATE is
+			when SELF_COUNT =>
+				reset_trig_from_scaler_mode <= '0';
+				--non-scaler mode: still count rates, wait for trigger signal
+				if SELF_TRIG_RATE_ONLY = '0' and (CC_TRIG = '1' or SELF_TRIGGER_LATCHED_OR = '1') then
+					SCALER_LATCH <= SELF_TRIGGER; --30 bit bus;
+					SCALER_MODE_STATE <= SELF_COUNT_LATCH; 
+				
+				--scaler mode: wait 4 clock edges, and then look at all output bits
+				elsif i > 3 and SELF_TRIG_RATE_ONLY = '1' then
+					i:=0;
+					SCALER_LATCH <= SELF_TRIGGER; --30 bit bus;
+					SCALER_MODE_STATE <= SELF_COUNT_LATCH;
+				elsif SELF_TRIG_RATE_ONLY = '1' then	
+					i := i + 1;							
+				end if;
+			
+			when SELF_COUNT_LATCH =>
+				reset_trig_from_scaler_mode <= '0';
+				--add up bits to rate counting array
+				for ii in 29 downto 0 loop
+					SELF_COUNT_RATE(ii)(15 downto 0) <= SELF_COUNT_RATE(ii)(15 downto 0) + 
+					("00000000000000"&SCALER_LATCH(ii));
+				end loop;
+				case SELF_TRIG_RATE_ONLY is
+					--non-scaler mode: go back to looking for trigger
+					when '0' =>
+						SCALER_MODE_STATE <= SELF_COUNT;
+					--scaler mode: pulse a self-trig reset before going back to looking for trigger
+					when '1' =>
+						SCALER_MODE_STATE <= SELF_COUNT_RESET;
+				end case;
+			when SELF_COUNT_RESET =>
+				reset_trig_from_scaler_mode <= '1';
+				SCALER_MODE_STATE <= SELF_COUNT;
+				
+		end case;
+	-- latch and reset rate counter mode:
+	elsif falling_edge(CLK_40) and SELF_COUNT_LATCH_sig = '1' and SELF_COUNT_sig = '0' then
+		SCALER_MODE_STATE <= SELF_COUNT;
+
+		case SCALER_MODE_LATCH_STATE is
+			when SELF_COUNT =>
+				i:=0;
+				SELF_COUNT_RATE_LATCH <= SELF_COUNT_RATE;
+				SCALER_MODE_LATCH_STATE <= SELF_COUNT_LATCH;
+			
+			when SELF_COUNT_LATCH =>
+				for ii in 29 downto 0 loop
+					SELF_COUNT_RATE(ii)(15 downto 0) <= (others=>'0');
+				end loop;
+				SCALER_MODE_LATCH_STATE <= SELF_COUNT_RESET;
+				
+			when SELF_COUNT_RESET =>
+				--nothing to do, wait until SELF_COUNT_sig is toggled hi, go back to SCALER_MODE_STATE
+		end case;
+	end if;
+end process;	
 --generate signals to toggle above process w.r.t. slow 1Hz clock
 process(xCLR_ALL, COUNT_RATE, xSLOW_CLK, SELF_TRIGGER_LATCHED)
 begin
-	if xCLR_ALL = '1' or xDONE = '1' or SELF_TRIG_RATE_ONLY = '0' then 
+	if xCLR_ALL = '1' or xDONE = '1' then 
 		SELF_COUNT_LATCH_sig <= '0';
 		SELF_COUNT_RESET_sig <= '0';
 		SELF_COUNT_sig       <= '0';
 		COUNT_RATE_OF_SELFTRIG <= SELF_COUNT;
-	elsif rising_edge(xSLOW_CLK) and SELF_TRIG_RATE_ONLY = '1' then
+	elsif rising_edge(xSLOW_CLK) then
 		case COUNT_RATE_OF_SELFTRIG is
 			when SELF_COUNT =>
 				SELF_COUNT_sig       <= '1';
@@ -464,12 +503,12 @@ begin
 				SELF_COUNT_sig       <= '0';
 				SELF_COUNT_LATCH_sig <= '1';
 				SELF_COUNT_RESET_sig <= '0';
-				COUNT_RATE_OF_SELFTRIG <= SELF_COUNT_RESET;
-			when SELF_COUNT_RESET =>
-				SELF_COUNT_sig       <= '0';
-				SELF_COUNT_LATCH_sig <= '0';
-				SELF_COUNT_RESET_sig <= '1';
 				COUNT_RATE_OF_SELFTRIG <= SELF_COUNT;
+			when others=>
+				SELF_COUNT_LATCH_sig <= '0';
+				SELF_COUNT_RESET_sig <= '0';
+				SELF_COUNT_sig       <= '0';
+				--change 20-11-2014 only toggle between count and latch states
 		end case;
 	end if;
 end process;

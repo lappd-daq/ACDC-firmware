@@ -847,6 +847,7 @@ set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_RO
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to GPIO_2v5[1]
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to GPIO_2v5[11]
+set_global_assignment -name SDC_FILE ACDC.sdc
 set_global_assignment -name VHDL_FILE source/JTAG/serial_flash.vhd
 set_global_assignment -name VHDL_FILE source/USB/usbwrite.vhd
 set_global_assignment -name VHDL_FILE source/USB/USBread.vhd

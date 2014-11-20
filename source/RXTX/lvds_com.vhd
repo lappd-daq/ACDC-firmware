@@ -70,7 +70,7 @@ type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, REA
 signal GET_CC_INSTRUCT_STATE	:	GET_CC_INSTRUCT_TYPE;
 
 type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3, 
-										INFO4, INFO5, INFO6, INFO7, INFO8, INFO9, TRIG_RATE,
+										INFO4, INFO5, INFO6, INFO7, INFO8, INFO9, INFO10, TRIG_RATE,
 										PSEC_END, MESS_END, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
@@ -385,8 +385,12 @@ variable mask_count : integer range 4 downto 0 := 0;
 					
 				when INFO9 =>	
 					GOOD_DATA <= xINFO9(mask_count);	
-					LVDS_MESS_STATE <= PSEC_END;	
-									
+					LVDS_MESS_STATE <= INFO10;	
+				
+				when INFO10 =>	
+					GOOD_DATA <= xINFO10(mask_count);	
+					LVDS_MESS_STATE <= PSEC_END;										
+				
 				when PSEC_END =>
 					GOOD_DATA <= PSEC_END_WORD;
 					mask_count := mask_count + 1;

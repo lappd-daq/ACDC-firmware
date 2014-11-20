@@ -73,6 +73,7 @@ architecture Behavioral of decode_instruct is
 		signal EVENT_COUNT			:		std_logic_vector(31 downto 0);
 		signal GLOBAL_RESET			: 		std_logic := '0';
 		signal TRIG_VALID				: 		std_logic := '0';
+		signal EVENT_AND_TIME_RESET: 		std_logic := '0'; 
 		
 		
 begin
@@ -106,8 +107,8 @@ begin
 --driver for 48 bit system clock/timestamp mangement
 process(xCLR_ALL, xCLK_40MHz, RESET_DLL_FLAG)
 begin
-	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' then
-			SYSTEM_CLOCK_COUNTER <= (others => '0');
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or EVENT_AND_TIME_RESET = '1' then
+		SYSTEM_CLOCK_COUNTER <= (others => '0');
 	elsif rising_edge(xCLK_40MHz) then
 		SYSTEM_CLOCK_COUNTER <= SYSTEM_CLOCK_COUNTER + 1;
 	end if;
@@ -115,7 +116,7 @@ end process;
 
 process(xCLR_ALL,xTRIGGER)
 begin
-	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' then
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or EVENT_AND_TIME_RESET = '1' then
 		LATCHED_SYSTEM_CLOCK <= (others => '0');
 		EVENT_COUNT <= (others => '0');
 	elsif rising_edge(xTRIGGER) then	
@@ -155,6 +156,7 @@ begin
 		RESET_SELF_TRIG	<= '0';
 		GLOBAL_RESET      <= '0';
 		ENABLE_LED 			<= '1';
+		EVENT_AND_TIME_RESET <= '0';
 		ENABLE_CAL_SWITCH <= (others => '0'); 
 		SET_PSEC_MASK     <= "11111";
 		INSTRUCT_VALUE		<= (others=>'0');
@@ -177,7 +179,8 @@ begin
 				INSTRUCT_PSEC_MASK<= (others=>'1');
 				CC_FIFO_STATUS <= "00000";
 				GLOBAL_RESET   <= '0';
-				
+				EVENT_AND_TIME_RESET <= '0';
+			
 				if xINSTRUCT_FLAG = '1' then
 					i := i + 1;
 					if i > 2 then
@@ -231,7 +234,10 @@ begin
 								GET_INSTRUCTION_STATE <= DELAY;							
 							when set_reset_instruct_opt_all =>
 								GLOBAL_RESET <= '1';
-								GET_INSTRUCTION_STATE <= DELAY;								
+								GET_INSTRUCTION_STATE <= DELAY;	
+							when set_reset_instruct_opt_time =>
+								EVENT_AND_TIME_RESET <= '1';
+								GET_INSTRUCTION_STATE <= DELAY;	
 							when others =>
 								GET_INSTRUCTION_STATE <= DELAY;
 						end case;		
@@ -293,7 +299,9 @@ begin
 				end case;
 				
 			when DELAY =>
-				LAST_INSTRUCTION <= xINSTRUCT_WORD;
+				if INSTRUCTION /= system_setting_instruct then
+					LAST_INSTRUCTION <= xINSTRUCT_WORD;
+				end if;
 				i := i + 1;
 				if i > 8 and xINSTRUCT_FLAG = '0' then
 					i := 0;

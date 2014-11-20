@@ -361,7 +361,7 @@ begin
 	port map(
 			xW_EN			=> W_EN,
 			xR_EN			=> xRAMR_EN,
-			xWRAM_CLK	=> not(xRD_CLKIN),
+			xWRAM_CLK	=> xRD_CLKIN, --not(xRD_CLKIN),
 			xRRAM_CLK   => xRAM_CLK,
 			xWR_ADDRESS => WADDR,
 			xRD_ADDRESS	=> xRD_ADDRESS,

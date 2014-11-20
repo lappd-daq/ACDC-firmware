@@ -518,7 +518,7 @@ applicable agreement for further details.
 )
 (pin
 	(output)
-	(rect 440 128 616 144)
+	(rect 1032 112 1208 128)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
 	(text "xCLK_READ" (rect 90 0 153 12)(font "Arial" ))
 	(pt 0 8)
@@ -1067,17 +1067,8 @@ applicable agreement for further details.
 	(pt 1176 888)
 )
 (connector
-	(pt 408 136)
-	(pt 440 136)
-)
-(connector
 	(pt 408 152)
 	(pt 440 152)
-)
-(connector
-	(text "clk40M_pll_system" (rect 1097 840 1191 852)(font "Arial" ))
-	(pt 1096 856)
-	(pt 1176 856)
 )
 (connector
 	(pt 456 168)
@@ -1138,4 +1129,30 @@ applicable agreement for further details.
 	(pt 112 464)
 	(pt 208 464)
 )
+(connector
+	(pt 1144 856)
+	(pt 1144 200)
+)
+(connector
+	(pt 1144 200)
+	(pt 920 200)
+)
+(connector
+	(pt 1096 856)
+	(pt 1144 856)
+)
+(connector
+	(text "clk40M_pll_system" (rect 1097 840 1191 852)(font "Arial" ))
+	(pt 1144 856)
+	(pt 1176 856)
+)
+(connector
+	(pt 920 120)
+	(pt 1032 120)
+)
+(connector
+	(pt 920 200)
+	(pt 920 120)
+)
+(junction (pt 1144 856))
 (text "=" (rect 312 248 319 262)(font "Arial" (font_size 8)))

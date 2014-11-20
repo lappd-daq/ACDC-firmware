@@ -55,7 +55,7 @@ begin
         CURRENT_COUNT_VALUE <= std_logic_vector(internal_COUNTER_VALUE_LATCHED);
 
         process(REFRESH_CLOCK)
-                constant INITIAL_DAC_VALUE : unsigned(11 downto 0) := x"720"; --x7D0 = 2000
+                constant INITIAL_DAC_VALUE : unsigned(11 downto 0) := x"820"; --x7D0 = 2000
                 constant MINIMUM_DAC_VALUE : unsigned(11 downto 0) := x"400"; --x320 = 800
                 constant MAXIMUM_DAC_VALUE : unsigned(11 downto 0) := x"999"; --xFFF = 4095
         begin
