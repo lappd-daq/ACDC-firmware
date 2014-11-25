@@ -101,16 +101,36 @@ begin  -- Behavioral
 --iREGISTER(6)(31 downto 0) <= x"1b5f82e"&"0110";
 --iREGISTER(7)(31 downto 0) <= x"ff883e0"&"0111";
 --iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
+										--40 MHz -- use this one for fan-out only!!!!
+--iREGISTER(0)(31 downto 0) <= x"014000e0"; --014002e0 to use secondary ref
+--iREGISTER(1)(31 downto 0) <= x"014000c1";
+--iREGISTER(2)(31 downto 0) <= x"014000c2";
+--iREGISTER(3)(31 downto 0) <= x"014000e3";
+--iREGISTER(4)(31 downto 0) <= x"014000e4";
+--iREGISTER(5)(31 downto 0) <= x"01ff1e75"; --pick lvds/lvcmos input buffers
+--iREGISTER(6)(31 downto 0) <= x"adffff86";
+--iREGISTER(7)(31 downto 0) <= x"bd0037f7";
+--iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
 										--40 MHz
-iREGISTER(0)(31 downto 0) <= x"014000e0"; --014002e0 to use secondary ref
-iREGISTER(1)(31 downto 0) <= x"014000c1";
-iREGISTER(2)(31 downto 0) <= x"014000c2";
-iREGISTER(3)(31 downto 0) <= x"014000e3";
-iREGISTER(4)(31 downto 0) <= x"014000e4";
-iREGISTER(5)(31 downto 0) <= x"01ff1e75"; --pick lvds/lvcmos input buffers
-iREGISTER(6)(31 downto 0) <= x"adffff86";
-iREGISTER(7)(31 downto 0) <= x"bd0037f7";
-iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
+--iREGISTER(0)(31 downto 0) <= x"01400020";
+--iREGISTER(1)(31 downto 0) <= x"01400001";
+--iREGISTER(2)(31 downto 0) <= x"01400002";
+--iREGISTER(3)(31 downto 0) <= x"01400003";
+--iREGISTER(4)(31 downto 0) <= x"01400014";
+--iREGISTER(5)(31 downto 0) <= x"10000BE5";
+--iREGISTER(6)(31 downto 0) <= x"044E02E6";
+--iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+--iREGISTER(8)(31 downto 0) <= x"20009D98";
+--										--40 MHz using PLL
+iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
+iREGISTER(1)(31 downto 0) <= x"01140301";
+iREGISTER(2)(31 downto 0) <= x"01140302";
+iREGISTER(3)(31 downto 0) <= x"01140303";
+iREGISTER(4)(31 downto 0) <= x"01140314";
+iREGISTER(5)(31 downto 0) <= x"10000BE5";
+iREGISTER(6)(31 downto 0) <= x"044E02E6";
+iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+iREGISTER(8)(31 downto 0) <= x"20009D98";
 										 --20 MHz    --40 MHz
 
 										 --iREGISTER(0)(31 downto 0) <= x"01800020"; --x"014000e0"; --014002e0 to use secondary ref

@@ -85,10 +85,11 @@ signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
 signal CC_INSTRUCTION_READY   :	std_logic_vector(31 downto 0);
 signal INSTRUCT_READY			:	std_logic;
+signal INSTRUCT_READY_REGISTERED			:	std_logic;
 
 signal PSEC_MASK					:	std_logic_vector(4 downto 0);
 signal MASK_COUNT_VECTOR		:	std_logic_vector(2 downto 0);
-
+ 
 signal RADDR						: std_logic_vector(RAM_ADR_SIZE-1 downto 0);
 signal RAM_READ_EN				: std_logic_vector(4 downto 0);
 signal RAM_CNT						: std_logic_vector(3 downto 0) := "0000";
@@ -117,14 +118,14 @@ end component;
 begin
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
-xINSTRUCT_READY	<= INSTRUCT_READY;
+xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED;
 xRAM_READ_EN	  	<= RAM_READ_EN;
 xRADDR				<= RADDR;
 xDC_XFER_DONE		<= INTERNAL_DONE;
 xTX_BUSY				<= mess_busy;
 xRX_BUSY				<=	RX_BUSY;
 
-xINSTRUCTION <= CC_INSTRUCTION;
+xINSTRUCTION <= CC_INSTRUCTION_READY;
 
 PSEC_MASK			<= xPSEC_MASK;	
 START					<= (xSTART(0) and xSTART(1) and xSTART(2) and 
@@ -204,6 +205,7 @@ begin
 		CC_INSTRUCTION <= (others=>'0');
 		CC_INSTRUCTION_READY <= (others=>'0');
 		INSTRUCT_READY <= '0';
+		INSTRUCT_READY_REGISTERED <= '0';
 		i := 0;
 		RX_BUSY <= '0';
 		GET_CC_INSTRUCT_STATE <= IDLE;
@@ -249,7 +251,12 @@ begin
 					GET_CC_INSTRUCT_STATE <= IDLE;
 				end if;
 		end case;
+
+	elsif rising_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
+		CC_INSTRUCTION_READY <= CC_INSTRUCTION;
+		INSTRUCT_READY_REGISTERED <= INSTRUCT_READY;
 	end if;
+	
 end process;
 
 --organize packets and send data along LVDS to CC

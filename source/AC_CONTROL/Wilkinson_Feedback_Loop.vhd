@@ -49,7 +49,7 @@ architecture Behavioral of Wilkinson_Feedback_Loop is
         signal internal_COUNTER_CLEAR           : std_logic := '0';
         signal internal_COUNTER_VALUE           : unsigned(15 downto 0);
         signal internal_COUNTER_VALUE_LATCHED   : unsigned(15 downto 0);
-        signal internal_DESIRED_DAC_VALUE       : unsigned(11 downto 0) := x"600";
+        signal internal_DESIRED_DAC_VALUE       : unsigned(11 downto 0) := x"820";
         signal internal_DESIRED_DAC_VALUE_VALID : std_logic := '1';
 begin
         CURRENT_COUNT_VALUE <= std_logic_vector(internal_COUNTER_VALUE_LATCHED);

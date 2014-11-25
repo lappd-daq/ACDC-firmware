@@ -51,7 +51,11 @@ begin
 	process(xCLK_40MHz)
 	variable i : integer range 20000001 downto 0;
 	begin
-		if rising_edge(xCLK_40MHz) then
+		if xCLR_ALL = '1' then
+			CLK_1Hz <= '1';
+			i:= 0;
+			STATE_1Hz <= HI_1Hz;
+		elsif rising_edge(xCLK_40MHz) then
 --------------------------------------------------------------------------------			
 			case STATE_1Hz is
 --------------------------------------------------------------------------------	
@@ -79,7 +83,11 @@ begin
 	process(xCLK_40MHz)
 	variable i : integer range 2000001 downto 0;
 	begin
-		if rising_edge(xCLK_40MHz) then
+		if xCLR_ALL = '1' then
+			CLK_10Hz <= '1';
+			i:= 0;
+			STATE_10Hz <= HI_10Hz;
+		elsif rising_edge(xCLK_40MHz) then
 --------------------------------------------------------------------------------			
 			case STATE_10Hz is
 --------------------------------------------------------------------------------	
@@ -107,7 +115,11 @@ begin
 	process(xCLK_40MHz)
 	variable i : integer range 200001 downto 0;
 	begin
-		if rising_edge(xCLK_40MHz) then
+		if xCLR_ALL = '1' then
+			CLK_100Hz <= '1';
+			i:= 0;
+			STATE_100Hz <= HI_100Hz;
+		elsif rising_edge(xCLK_40MHz) then
 --------------------------------------------------------------------------------			
 			case STATE_100Hz is
 --------------------------------------------------------------------------------	
@@ -135,7 +147,11 @@ begin
 	process(xCLK_40MHz)
 	variable i : integer range 20001 downto 0;
 	begin
-		if rising_edge(xCLK_40MHz) then
+		if xCLR_ALL = '1' then
+			i:= 0;
+			CLK_1kHz <= '1';
+			STATE_1kHz <= HI_1kHz;
+		elsif rising_edge(xCLK_40MHz) then
 --------------------------------------------------------------------------------			
 			case STATE_1kHz is
 --------------------------------------------------------------------------------	

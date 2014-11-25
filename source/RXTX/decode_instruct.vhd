@@ -23,6 +23,7 @@ entity decode_instruct is
 		xINSTRUCT_WORD		:		in		std_logic_vector(31 downto 0);
 		xALIGN_SUCCESS		:		in		std_logic;
 		xTRIGGER				: 		in		std_logic;
+		xPLL_LOCK			:     in    std_logic;
 		
 		xRESET_DLL_FLAG	:		out	std_logic_vector(4 downto 0);
 		xSET_TRIG_THRESH	:		out	Word_array;
@@ -107,7 +108,7 @@ begin
 --driver for 48 bit system clock/timestamp mangement
 process(xCLR_ALL, xCLK_40MHz, RESET_DLL_FLAG)
 begin
-	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or EVENT_AND_TIME_RESET = '1' then
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or xPLL_LOCK = '0' or EVENT_AND_TIME_RESET = '1' then
 		SYSTEM_CLOCK_COUNTER <= (others => '0');
 	elsif rising_edge(xCLK_40MHz) then
 		SYSTEM_CLOCK_COUNTER <= SYSTEM_CLOCK_COUNTER + 1;
@@ -116,7 +117,7 @@ end process;
 
 process(xCLR_ALL,xTRIGGER)
 begin
-	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or EVENT_AND_TIME_RESET = '1' then
+	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or xPLL_LOCK = '0' or EVENT_AND_TIME_RESET = '1' then
 		LATCHED_SYSTEM_CLOCK <= (others => '0');
 		EVENT_COUNT <= (others => '0');
 	elsif rising_edge(xTRIGGER) then	

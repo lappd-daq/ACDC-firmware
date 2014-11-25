@@ -17,6 +17,7 @@ $RECYCLE.BIN/
 #altera generated files
 /db
 /incremental_db
+/greybox_tmp
 *.bak
 
 *.rpt
@@ -30,6 +31,8 @@ $RECYCLE.BIN/
 *.jdi
 *.map
 *.cdf
+*.qip
+*.ppf
 
 # =========================
 # Operating System Files

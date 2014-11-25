@@ -78,7 +78,6 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	type REG_TRIG_BITS_STATE_TYPE is (TRIG1, TRIG2, TRIG3, TRIG4, DONE5);
 	signal REG_TRIG_BITS_STATE : REG_TRIG_BITS_STATE_TYPE  ;
 -------------------------------------------------------------------------------
-	signal EXT_TRIG			:	std_logic;   	--trigger signal output to chips and to rest of firmware
 	signal SELF_TRIG_EXT		:  std_logic;     --self trig needs to be clocked to sync across boards!!
 	signal SELF_TRIG_EXT_HI	:	std_logic;		--clock in on rising edge
 	signal SELF_TRIG_EXT_LO	:  std_logic;		--clock in on falling edge
@@ -126,7 +125,7 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal trig_latch4					: std_logic_vector (29 downto 0); 
 
 	signal COUNT_RATE						: std_logic;
-	
+
 	signal EVENT_CNT			:	std_logic_vector(31 downto 0);	
 	
 	signal BIN_COUNT_START 	: 	std_logic := '0';
@@ -136,9 +135,14 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 		
 	signal BIN_COUNT2			:	std_logic_vector(3 downto 0) := "0000";
 	signal BIN_COUNT_SAVE2  :	std_logic_vector(3 downto 0);
-
-	signal clock_dll_reset_hi			: std_logic;
-	signal clock_dll_reset_lo			: std_logic;
+	
+	signal TRIG_VALID_HI						: std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
+	signal TRIG_VALID_LO						: std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
+	signal clock_dll_reset_hi		      : std_logic;--_vector(2 downto 0) := (others=>'0');
+	signal clock_dll_reset_lo			   : std_logic;--_vector(2 downto 0) := (others=>'0');
+	signal self_trig_ext_registered     : std_logic_vector(2 downto 0) := (others=>'0');
+	signal clock_cc_trig_hi			      : std_logic;
+	signal clock_cc_trig_lo			      : std_logic;
 
 component psec4_SELFtrigger
 	port(
@@ -165,10 +169,9 @@ end component;
 begin  -- Behavioral
 -------------------------------------------------------------------------------		
 	---------------------------------------------------------------
-	--this is the PSEC4 combined trigger signal
 	SELF_TRIG_EXT  <= SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO;
-	EXT_TRIG			<= CC_TRIG or (SELF_TRIG_EXT and SELF_TRIG_EN);
-	xTRIGGER_OUT	<= EXT_TRIG;
+	--this is the PSEC4 combined trigger signal
+	xTRIGGER_OUT	<= CC_TRIG or ((SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO) and SELF_TRIG_EN);
 	---------------------------------------------------------------
 	--
 	CLK_40			<= xMCLK;
@@ -216,49 +219,41 @@ xPSEC4_TRIGGER_INFO_3(4)(15 downto 0) <= "00" & SELF_TRIGGER_MASK(29 downto 16);
 --trigger 'binning' firmware-----
 --for self-triggering option only --
 ----------------------------------------------------------
---clock domain transfer
-process (xCLR_ALL, xTRIG_CLK, xDLL_RESET )
+----------------------------------------------------------
+--fine 'binning' counter cycle:
+rise_edge_bin:process(xTRIG_CLK, clock_dll_reset_lo)
 begin
-	if xCLR_ALL = '1' or xDLL_RESET = '0' then
-		clock_dll_reset_hi <= '0';
-		clock_dll_reset_hi <= '0';
-	elsif rising_edge(xTRIG_CLK) and xDLL_RESET = '1' then
-		clock_dll_reset_hi <= '1';
-	elsif falling_edge(xTRIG_CLK) and xDLL_RESET = '1' then
-		clock_dll_reset_lo <= '1';
-	end if;
-end process;
---fine 'binning' counter cycle:		
-process(xCLR_ALL, xTRIG_CLK, clock_dll_reset_hi, clock_dll_reset_lo,
-			BIN_COUNT_START)
-begin
-	if clock_dll_reset_hi = '0' or clock_dll_reset_lo = '0' then 
+	if clock_dll_reset_lo = '0' then
 		BIN_COUNT <= (others => '0');
-		BIN_COUNT2<= (others => '0');
-	elsif rising_edge(xTRIG_CLK)  and clock_dll_reset_lo = '1' then 
+	elsif rising_edge(xTRIG_CLK) and clock_dll_reset_lo = '1' then 
 		BIN_COUNT <= BIN_COUNT + 1;
-	elsif falling_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then
-		BIN_COUNT2 <= BIN_COUNT2 + 1;
 	end if;
 end process;
---
-process(xCLR_ALL, xDONE, SELF_TRIG_EXT_LO)
+fall_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
 begin
-	if xCLR_ALL = '1' or xDONE = '1' then
-		BIN_COUNT_SAVE <= (others => '0');
-	elsif rising_edge(SELF_TRIG_EXT_LO) then
+	if clock_dll_reset_hi = '0' then
+		BIN_COUNT2<= (others => '0');
+	elsif falling_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
+		BIN_COUNT2 <= BIN_COUNT2 + 1;	
+	end if;
+end process;
+----------------------------------------------------------
+process(SELF_TRIG_EXT_LO)
+begin
+--	if xCLR_ALL = '1' or xDONE = '1' then
+--		BIN_COUNT_SAVE <= (others => '0');
+	if rising_edge(SELF_TRIG_EXT_LO) then
 		BIN_COUNT_SAVE <= BIN_COUNT;
 	end if;
 end process;
-process(xCLR_ALL, xDONE, SELF_TRIG_EXT_HI)
+process(SELF_TRIG_EXT_HI)
 begin
-	if xCLR_ALL = '1' or xDONE = '1' then
-		BIN_COUNT_SAVE2 <= (others => '0');
-	elsif rising_edge(SELF_TRIG_EXT_HI) then
+--	if xCLR_ALL = '1' or xDONE = '1' then	
+--		BIN_COUNT_SAVE2 <= (others => '0');
+	if rising_edge(SELF_TRIG_EXT_HI) then
 		BIN_COUNT_SAVE2 <= BIN_COUNT2;
 	end if;
 end process;
------
 --end binning
 ----------------------------------------------------------
 
@@ -272,7 +267,7 @@ begin
 		trig_latch3 <= (others => '0');
 		trig_latch4 <= (others => '0');
 		REG_TRIG_BITS_STATE <= trig1;
-	elsif rising_edge(xTRIG_CLK) and SELF_TRIGGER_LATCHED_OR = '1' then
+	elsif rising_edge(xTRIG_CLK) and SELF_TRIG_EXT_LO = '1' then
 		case REG_TRIG_BITS_STATE is
 			when trig1 =>
 				trig_latch1 <= SELF_TRIGGER_CLOCKED;
@@ -305,41 +300,69 @@ process(xMCLK, xDONE, xCLR_ALL, xCC_TRIG)
 			CC_TRIG_START_ADC <= '1';
 		end if;
 end process;
+----------------------------------------------------------
+--clock domain transfers
+----------------------------------------------------------
+process (xCLR_ALL, xTRIG_CLK )
+begin
+	if xCLR_ALL = '1' then
+		clock_cc_trig_hi <= '0';
+		clock_cc_trig_lo <= '0';
+		clock_dll_reset_hi <= '0';
+		clock_dll_reset_lo <= '0';
+	elsif rising_edge(xTRIG_CLK) then
+		clock_cc_trig_hi <= CC_TRIG;
+		clock_dll_reset_hi <= xDLL_RESET;
+	elsif falling_edge(xTRIG_CLK) then
+		clock_cc_trig_lo <= CC_TRIG;
+		clock_dll_reset_lo <= xDLL_RESET;
+	end if;
+end process;	
+--generic clock domain transfer for slower signals
+process (xMCLK, xTRIG_VALID)
+begin
+	if rising_edge(xTRIG_CLK) then
+		TRIG_VALID_HI <= TRIG_VALID_HI(1 downto 0)&xTRIG_VALID;
+		--clock_dll_reset_hi <= clock_dll_reset_hi(1 downto 0)&xDLL_RESET;
+	elsif falling_edge(xTRIG_CLK) then
+		TRIG_VALID_LO <= TRIG_VALID_LO(1 downto 0)&xTRIG_VALID;
+		--clock_dll_reset_lo <= clock_dll_reset_lo(1 downto 0)&xDLL_RESET;
+		self_trig_ext_registered <= self_trig_ext_registered(1 downto 0)&SELF_TRIG_EXT_HI;
+	end if;
+end process;
 	
 ----------------------------------------------------------
 ---self triggering firmware:
 ----------------------------------------------------------
-SELF_TRIGGER_MASK <= xSELF_TRIGGER_MASK;
 ----------------------------------------------------------
 ---interpret self_trigger_settings
 ----------------------------------------------------------
+SELF_TRIGGER_MASK       <= xSELF_TRIGGER_MASK;
 SELF_TRIG_EN 				<= xSELF_TRIGGER_SETTING(0);
 SELF_WAIT_FOR_SYS_TRIG 	<= xSELF_TRIGGER_SETTING(1);
 SELF_TRIG_RATE_ONLY 		<= xSELF_TRIGGER_SETTING(2);
 xRATE_ONLY 					<= SELF_TRIG_RATE_ONLY;
 xSELF_TRIG_SIGN			<= xSELF_TRIGGER_SETTING(3);
 ----------------------------------------------------------
-
 SELF_TRIGGER <= xSELFTRIG_4 & xSELFTRIG_3 & xSELFTRIG_2 & xSELFTRIG_1 & xSELFTRIG_0;
-	
 ----------------------------------------------------------
 --now, send in self trigger:	
 ----------------------------------------------------------
 process( xTRIG_CLK, SELF_TRIGGER_LATCHED,
 			SELF_TRIG_EN, xCLR_ALL, xDONE, SELF_TRIG_CLR)
 begin	
-	if xCLR_ALL = '1'  or xDONE = '1' or SELF_TRIG_EN = '0' or SELF_TRIG_CLR = '1' 
-		or SELF_TRIG_RATE_ONLY = '1' or RESET_TRIG_FROM_SOFTWARE = '1' or xTRIG_VALID = '0' then
+	if xCLR_ALL = '1'  or xDONE = '1' or SELF_TRIG_CLR = '1' 
+		or SELF_TRIG_RATE_ONLY = '1' or RESET_TRIG_FROM_SOFTWARE = '1' then
 		--
 		SELF_TRIG_EXT_HI <= '0';
 		SELF_TRIG_EXT_LO <= '0';
 		--
 	--latch self-trigger signal from SELF_TRIGGER_WRAPPER or tag system trigger, depending on source
-	elsif rising_edge(xTRIG_CLK) and (SELF_TRIGGER_LATCHED_OR = '1' or CC_TRIG = '1') then
+	elsif rising_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and TRIG_VALID_LO = "111") or clock_cc_trig_lo = '1') then
 		--
 		SELF_TRIG_EXT_HI <= 	'1';    
 		--
-	elsif falling_edge(xTRIG_CLK) and (SELF_TRIGGER_LATCHED_OR = '1' or CC_TRIG = '1')  then
+	elsif falling_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and TRIG_VALID_HI = "111") or clock_cc_trig_hi = '1') then
 		--
 		SELF_TRIG_EXT_LO <= 	'1';    
 		--
@@ -365,10 +388,10 @@ begin
 			when WAIT_FOR_COINCIDENCE =>
 				--if SELF_TRIGGER_NO >= SELF_TRIGGER_NO_COINCIDNT then
 				--	i := 0;
-				if SELF_WAIT_FOR_SYS_TRIG = '1' and SELF_TRIG_EXT = '1'  then
+				if SELF_WAIT_FOR_SYS_TRIG = '1' and self_trig_ext_registered(2) = '1'  then
 					HANDLE_TRIG_STATE <= WAIT_FOR_SYSTEM;
 
-				elsif SELF_TRIG_EXT = '1' and SELF_WAIT_FOR_SYS_TRIG = '0' then
+				elsif self_trig_ext_registered(2) = '1' and SELF_WAIT_FOR_SYS_TRIG = '0' then
 					HANDLE_TRIG_STATE <= SELF_START_ADC;
 				
 				end if;
