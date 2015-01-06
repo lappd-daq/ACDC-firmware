@@ -113,6 +113,7 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal RESET_TRIG_COUNT				:	std_logic := '1';      -- trig clear signals
 	signal RESET_TRIG_FROM_FIRMWARE_FLAG :  std_logic;
 	signal SELF_TRIG_CLR					:  std_logic;
+	signal SELFTRIG_CLEAR            :  std_logic;
 	signal reset_trig_from_scaler_mode: std_logic;
 	
 	signal SELF_WAIT_FOR_SYS_TRIG    : std_logic;
@@ -131,18 +132,23 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal BIN_COUNT_START 	: 	std_logic := '0';
 	signal BIN_COUNT_START2 :  std_logic := '0';
 	signal BIN_COUNT			:	std_logic_vector(3 downto 0) := "0000";
-	signal BIN_COUNT_SAVE	:	std_logic_vector(3 downto 0);
+	signal BIN_COUNT_SAVE	:	std_logic_vector(3 downto 0) := "0000";
 		
 	signal BIN_COUNT2			:	std_logic_vector(3 downto 0) := "0000";
-	signal BIN_COUNT_SAVE2  :	std_logic_vector(3 downto 0);
+	signal BIN_COUNT_SAVE2  :	std_logic_vector(3 downto 0) := "0000";
 	
 	signal TRIG_VALID_HI						: std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
 	signal TRIG_VALID_LO						: std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
 	signal clock_dll_reset_hi		      : std_logic;--_vector(2 downto 0) := (others=>'0');
 	signal clock_dll_reset_lo			   : std_logic;--_vector(2 downto 0) := (others=>'0');
+	signal clock_dll_reset_lo_lo		   : std_logic;--_vector(2 downto 0) := (others=>'0');
+	signal clock_dll_reset_hi_hi		   : std_logic;--_vector(2 downto 0) := (others=>'0');
 	signal self_trig_ext_registered     : std_logic_vector(2 downto 0) := (others=>'0');
 	signal clock_cc_trig_hi			      : std_logic;
 	signal clock_cc_trig_lo			      : std_logic;
+	signal clear_all_registered_hi      : std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
+	signal clear_all_registered_lo      : std_logic_vector(2 downto 0) := (others=>'0'); -- transfer clock domain
+	signal clear_all_latch					: std_logic;
 
 component psec4_SELFtrigger
 	port(
@@ -170,15 +176,19 @@ begin  -- Behavioral
 -------------------------------------------------------------------------------		
 	---------------------------------------------------------------
 	SELF_TRIG_EXT  <= SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO;
-	--this is the PSEC4 combined trigger signal
+	---------------------------------------------------------------
+	--this is the PSEC4 combined trigger signal!!!!!!!!!!!!!!!!!!!!
 	xTRIGGER_OUT	<= CC_TRIG or ((SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO) and SELF_TRIG_EN);
 	---------------------------------------------------------------
-	--
 	CLK_40			<= xMCLK;
 	--
 	xSTART_ADC <= CC_TRIG_START_ADC or SELF_TRIGGER_START_ADC;
 	--
-	xSELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE or reset_trig_from_scaler_mode;	
+	SELF_TRIG_CLR <= xCLR_ALL or (not xDLL_RESET);
+	SELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE or reset_trig_from_scaler_mode 
+		or (SELF_TRIG_RATE_ONLY nor xTRIG_VALID) ;	
+	
+	xSELFTRIG_CLEAR <= SELFTRIG_CLEAR;
 	--
 	xSELF_TRIG_RATES <= SELF_COUNT_RATE_LATCH;
 	--
@@ -204,57 +214,6 @@ xPSEC4_TRIGGER_INFO_3(2)(15 downto 0) <= "00" & trig_latch4(29 downto 16);
 xPSEC4_TRIGGER_INFO_3(3)(15 downto 0) <= SELF_TRIGGER_MASK(15 downto 0);
 xPSEC4_TRIGGER_INFO_3(4)(15 downto 0) <= "00" & SELF_TRIGGER_MASK(29 downto 16);
 
-----------------------------------------------------------	
---implement crude event counter
---process(xCLR_ALL,EXT_TRIG) 
---begin
---	if xCLR_ALL = '1' then
---		EVENT_CNT <= (others => '0');
---	elsif rising_edge(EXT_TRIG) then
---		EVENT_CNT <= EVENT_CNT + 1;
---	end if;
---end process;
-
-----------------------------------------------------------
---trigger 'binning' firmware-----
---for self-triggering option only --
-----------------------------------------------------------
-----------------------------------------------------------
---fine 'binning' counter cycle:
-rise_edge_bin:process(xTRIG_CLK, clock_dll_reset_lo)
-begin
-	if clock_dll_reset_lo = '0' then
-		BIN_COUNT <= (others => '0');
-	elsif rising_edge(xTRIG_CLK) and clock_dll_reset_lo = '1' then 
-		BIN_COUNT <= BIN_COUNT + 1;
-	end if;
-end process;
-fall_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
-begin
-	if clock_dll_reset_hi = '0' then
-		BIN_COUNT2<= (others => '0');
-	elsif falling_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
-		BIN_COUNT2 <= BIN_COUNT2 + 1;	
-	end if;
-end process;
-----------------------------------------------------------
-process(SELF_TRIG_EXT_LO)
-begin
---	if xCLR_ALL = '1' or xDONE = '1' then
---		BIN_COUNT_SAVE <= (others => '0');
-	if rising_edge(SELF_TRIG_EXT_LO) then
-		BIN_COUNT_SAVE <= BIN_COUNT;
-	end if;
-end process;
-process(SELF_TRIG_EXT_HI)
-begin
---	if xCLR_ALL = '1' or xDONE = '1' then	
---		BIN_COUNT_SAVE2 <= (others => '0');
-	if rising_edge(SELF_TRIG_EXT_HI) then
-		BIN_COUNT_SAVE2 <= BIN_COUNT2;
-	end if;
-end process;
---end binning
 ----------------------------------------------------------
 
 process(	xCLR_ALL, xTRIG_CLK, xDONE, SELF_TRIGGER_LATCHED_OR, 
@@ -267,7 +226,7 @@ begin
 		trig_latch3 <= (others => '0');
 		trig_latch4 <= (others => '0');
 		REG_TRIG_BITS_STATE <= trig1;
-	elsif rising_edge(xTRIG_CLK) and SELF_TRIG_EXT_LO = '1' then
+	elsif falling_edge(xTRIG_CLK) and SELF_TRIG_EXT_HI = '1' then
 		case REG_TRIG_BITS_STATE is
 			when trig1 =>
 				trig_latch1 <= SELF_TRIGGER_CLOCKED;
@@ -303,31 +262,56 @@ end process;
 ----------------------------------------------------------
 --clock domain transfers
 ----------------------------------------------------------
+----------------------------------------------------------	
+--trigger 'binning' firmware
+--poor man's TDC
+----------------------------------------------------------
+--fine 'binning' counter cycle:
+rise_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
+begin
+	if clock_dll_reset_hi = '0' then
+		BIN_COUNT<= (others => '0');
+	elsif rising_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
+		BIN_COUNT <= BIN_COUNT2 + 1;	
+	end if;
+end process;
+fall_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
+begin
+	if clock_dll_reset_hi = '0' then
+		BIN_COUNT2<= (others => '0');
+	elsif falling_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
+		BIN_COUNT2 <= BIN_COUNT2 + 1;	
+	end if;
+end process;
+process(SELF_TRIG_EXT_HI)
+begin
+	if rising_edge(SELF_TRIG_EXT_HI) then
+		BIN_COUNT_SAVE2 <= BIN_COUNT2;
+		BIN_COUNT_SAVE  <= BIN_COUNT2;
+	end if;
+end process;
+--end binning
 process (xCLR_ALL, xTRIG_CLK )
 begin
 	if xCLR_ALL = '1' then
-		clock_cc_trig_hi <= '0';
-		clock_cc_trig_lo <= '0';
 		clock_dll_reset_hi <= '0';
-		clock_dll_reset_lo <= '0';
 	elsif rising_edge(xTRIG_CLK) then
-		clock_cc_trig_hi <= CC_TRIG;
 		clock_dll_reset_hi <= xDLL_RESET;
-	elsif falling_edge(xTRIG_CLK) then
-		clock_cc_trig_lo <= CC_TRIG;
-		clock_dll_reset_lo <= xDLL_RESET;
 	end if;
-end process;	
+end process;
+
 --generic clock domain transfer for slower signals
-process (xMCLK, xTRIG_VALID)
+process(xMCLK)
 begin
-	if rising_edge(xTRIG_CLK) then
-		TRIG_VALID_HI <= TRIG_VALID_HI(1 downto 0)&xTRIG_VALID;
-		--clock_dll_reset_hi <= clock_dll_reset_hi(1 downto 0)&xDLL_RESET;
-	elsif falling_edge(xTRIG_CLK) then
-		TRIG_VALID_LO <= TRIG_VALID_LO(1 downto 0)&xTRIG_VALID;
-		--clock_dll_reset_lo <= clock_dll_reset_lo(1 downto 0)&xDLL_RESET;
+	if rising_edge(xMCLK) then
+		clear_all_registered_hi <= clear_all_registered_hi(1 downto 0)&xCLR_ALL;
+	end if;
+end process;
+process(xMCLK)
+begin
+	if falling_edge(xMCLK) then
 		self_trig_ext_registered <= self_trig_ext_registered(1 downto 0)&SELF_TRIG_EXT_HI;
+		clear_all_registered_lo <= clear_all_registered_lo(1 downto 0)&xCLR_ALL;
 	end if;
 end process;
 	
@@ -348,23 +332,19 @@ SELF_TRIGGER <= xSELFTRIG_4 & xSELFTRIG_3 & xSELFTRIG_2 & xSELFTRIG_1 & xSELFTRI
 ----------------------------------------------------------
 --now, send in self trigger:	
 ----------------------------------------------------------
-process( xTRIG_CLK, SELF_TRIGGER_LATCHED,
-			SELF_TRIG_EN, xCLR_ALL, xDONE, SELF_TRIG_CLR)
+process( xTRIG_CLK, SELF_TRIGGER_LATCHED_OR,
+			xCLR_ALL, xDONE, SELFTRIG_CLEAR, xTRIG_VALID)
 begin	
-	if xCLR_ALL = '1'  or xDONE = '1' or SELF_TRIG_CLR = '1' 
-		or SELF_TRIG_RATE_ONLY = '1' or RESET_TRIG_FROM_SOFTWARE = '1' then
+	if xCLR_ALL = '1' or (xDONE = '1' and SELF_TRIG_EN = '0') 
+		or SELFTRIG_CLEAR = '1' or SELF_TRIG_RATE_ONLY = '1' then
 		--
 		SELF_TRIG_EXT_HI <= '0';
 		SELF_TRIG_EXT_LO <= '0';
 		--
 	--latch self-trigger signal from SELF_TRIGGER_WRAPPER or tag system trigger, depending on source
-	elsif rising_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and TRIG_VALID_LO = "111") or clock_cc_trig_lo = '1') then
+	elsif rising_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and xTRIG_VALID= '1') or CC_TRIG = '1') then
 		--
 		SELF_TRIG_EXT_HI <= 	'1';    
-		--
-	elsif falling_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and TRIG_VALID_HI = "111") or clock_cc_trig_hi = '1') then
-		--
-		SELF_TRIG_EXT_LO <= 	'1';    
 		--
 	end if;
 end process;
@@ -375,7 +355,7 @@ end process;
 process(CLK_40, xCLR_ALL, xDONE)
 variable i : integer range 100 downto -1 := 0;
 begin
-	if xCLR_ALL = '1' or xDONE = '1' or SELF_TRIG_EXT = '0' or
+	if xCLR_ALL = '1' or xDONE = '1' or self_trig_ext_registered(2) = '0' or
 		SELF_TRIG_RATE_ONLY = '1' then
 		i := 0;
 		SELF_TRIGGER_START_ADC <= '0';
@@ -390,10 +370,10 @@ begin
 				--	i := 0;
 				if SELF_WAIT_FOR_SYS_TRIG = '1' and self_trig_ext_registered(2) = '1'  then
 					HANDLE_TRIG_STATE <= WAIT_FOR_SYSTEM;
-
 				elsif self_trig_ext_registered(2) = '1' and SELF_WAIT_FOR_SYS_TRIG = '0' then
 					HANDLE_TRIG_STATE <= SELF_START_ADC;
-				
+				else
+					HANDLE_TRIG_STATE <= WAIT_FOR_COINCIDENCE;
 				end if;
 				
 			when WAIT_FOR_SYSTEM => 
@@ -536,21 +516,8 @@ begin
 	end if;
 end process;
 ----------------------------------------------------------
-
 --clearing trigger
-process(xCLR_ALL, xDONE, SELF_TRIG_EXT )
-
-begin 
-	if xCLR_ALL = '1'  --or xDONE = '1' 
-		or xDLL_RESET = '0' then
-		SELF_TRIG_CLR <= '1';
-	
-	elsif xCLR_ALL = '0'  --and xDONE = '0' 
-			and xDLL_RESET = '1' then
-		SELF_TRIG_CLR <= '0';		
-	end if;
-end process;
-							
+						
 process(xTRIG_CLK, xRESET_TRIG_FLAG)
 		begin
 			if xCLR_ALL = '1' then

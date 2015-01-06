@@ -122,16 +122,38 @@ begin  -- Behavioral
 --iREGISTER(7)(31 downto 0) <= x"BD913DB7";
 --iREGISTER(8)(31 downto 0) <= x"20009D98";
 --										--40 MHz using PLL
-iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
-iREGISTER(1)(31 downto 0) <= x"01140301";
-iREGISTER(2)(31 downto 0) <= x"01140302";
-iREGISTER(3)(31 downto 0) <= x"01140303";
-iREGISTER(4)(31 downto 0) <= x"01140314";
+--iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
+--iREGISTER(1)(31 downto 0) <= x"01140301";
+--iREGISTER(2)(31 downto 0) <= x"01140302";
+--iREGISTER(3)(31 downto 0) <= x"01140303";
+--iREGISTER(4)(31 downto 0) <= x"01140314";
+--iREGISTER(5)(31 downto 0) <= x"10000BE5";
+--iREGISTER(6)(31 downto 0) <= x"044E02E6";
+--iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+--iREGISTER(8)(31 downto 0) <= x"20009D98";
+
+--										--30 MHz using PLL
+iREGISTER(0)(31 downto 0) <= x"011C0320";
+iREGISTER(1)(31 downto 0) <= x"011C0301";
+iREGISTER(2)(31 downto 0) <= x"011C0302";
+iREGISTER(3)(31 downto 0) <= x"011C0303";
+iREGISTER(4)(31 downto 0) <= x"011C0314";
 iREGISTER(5)(31 downto 0) <= x"10000BE5";
 iREGISTER(6)(31 downto 0) <= x"044E02E6";
 iREGISTER(7)(31 downto 0) <= x"BD913DB7";
 iREGISTER(8)(31 downto 0) <= x"20009D98";
 										 --20 MHz    --40 MHz
+										
+--										--20 MHz using PLL
+--iREGISTER(0)(31 downto 0) <= x"012C0320";
+--iREGISTER(1)(31 downto 0) <= x"012C0301";
+--iREGISTER(2)(31 downto 0) <= x"012C0302";
+--iREGISTER(3)(31 downto 0) <= x"012C0303";
+--iREGISTER(4)(31 downto 0) <= x"012C0314";
+--iREGISTER(5)(31 downto 0) <= x"10000BE5";
+--iREGISTER(6)(31 downto 0) <= x"044E02E6";
+--iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+--iREGISTER(8)(31 downto 0) <= x"20009D98";
 
 										 --iREGISTER(0)(31 downto 0) <= x"01800020"; --x"014000e0"; --014002e0 to use secondary ref
 --iREGISTER(1)(31 downto 0) <= x"01800001"; --x"014000c1";

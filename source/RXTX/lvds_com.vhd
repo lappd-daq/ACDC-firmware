@@ -65,7 +65,7 @@ architecture Behavioral of lvds_com is
 type 	LVDS_ALIGN_TYPE is (CHECK, DOUBLE_CHECK, INCREMENT, ALIGN_DONE);
 signal LVDS_ALIGN_STATE			: LVDS_ALIGN_TYPE;
 
-type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, READY);
+type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, DELAY, READY);
 --type 	GET_CC_INSTRUCT_TYPE is (IDLE, CATCH0, CATCH1, CATCH2, CATCH3, READY);
 signal GET_CC_INSTRUCT_STATE	:	GET_CC_INSTRUCT_TYPE;
 
@@ -240,8 +240,16 @@ begin
 				GET_CC_INSTRUCT_STATE <= CATCH3;
 			when CATCH3 =>
 				CC_INSTRUCTION(7 downto 0) 	<= RX_DATA;
+				GET_CC_INSTRUCT_STATE <= DELAY;
+			
+			when DELAY =>
+			if i >1 then
+				i := 0;
 				GET_CC_INSTRUCT_STATE <= READY;
-
+			else
+				i := i+1;
+			end if;
+				
 			when READY =>
 				INSTRUCT_READY <= '1';
 				i := i + 1;
@@ -249,6 +257,7 @@ begin
 					i := 0;
 					RX_BUSY <= '0';
 					GET_CC_INSTRUCT_STATE <= IDLE;
+
 				end if;
 		end case;
 

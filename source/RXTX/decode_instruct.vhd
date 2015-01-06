@@ -74,7 +74,8 @@ architecture Behavioral of decode_instruct is
 		signal EVENT_COUNT			:		std_logic_vector(31 downto 0);
 		signal GLOBAL_RESET			: 		std_logic := '0';
 		signal TRIG_VALID				: 		std_logic := '0';
-		signal EVENT_AND_TIME_RESET: 		std_logic := '0'; 
+		signal EVENT_AND_TIME_RESET: 		std_logic := '0';
+		signal TRIGGER					:     std_logic := '0';
 		
 		
 begin
@@ -114,13 +115,18 @@ begin
 		SYSTEM_CLOCK_COUNTER <= SYSTEM_CLOCK_COUNTER + 1;
 	end if;
 end process;
-
+process(xTRIGGER)
+begin
+	if falling_edge(xCLK_40MHz) then
+		TRIGGER <= xTRIGGER;
+	end if;
+end process;
 process(xCLR_ALL,xTRIGGER)
 begin
 	if xCLR_ALL = '1' or RESET_DLL_FLAG(0) = '1' or xPLL_LOCK = '0' or EVENT_AND_TIME_RESET = '1' then
 		LATCHED_SYSTEM_CLOCK <= (others => '0');
 		EVENT_COUNT <= (others => '0');
-	elsif rising_edge(xTRIGGER) then	
+	elsif rising_edge(TRIGGER) then	
 		LATCHED_SYSTEM_CLOCK <= SYSTEM_CLOCK_COUNTER;
 		EVENT_COUNT <= EVENT_COUNT + 1;
 	end if;

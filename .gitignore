@@ -33,6 +33,7 @@ $RECYCLE.BIN/
 *.cdf
 *.qip
 *.ppf
+*.txt
 
 # =========================
 # Operating System Files

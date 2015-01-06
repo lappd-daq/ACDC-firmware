@@ -649,23 +649,6 @@ applicable agreement for further details.
 	(annotation_block (location)(rect -320 152 -264 224))
 )
 (pin
-	(input)
-	(rect 632 160 800 176)
-	(text "INPUT" (rect 133 0 161 10)(font "Arial" (font_size 6)))
-	(text "SMA_trig" (rect 5 0 48 12)(font "Arial" ))
-	(pt 168 8)
-	(drawing
-		(line (pt 92 12)(pt 117 12))
-		(line (pt 92 4)(pt 117 4))
-		(line (pt 121 8)(pt 168 8))
-		(line (pt 92 12)(pt 92 4))
-		(line (pt 117 4)(pt 121 8))
-		(line (pt 117 12)(pt 121 8))
-	)
-	(text "VCC" (rect 136 7 156 17)(font "Arial" (font_size 6)))
-	(annotation_block (location)(rect 280 144 336 160))
-)
-(pin
 	(output)
 	(rect 1792 144 1971 160)
 	(text "OUTPUT" (rect 1 0 39 10)(font "Arial" (font_size 6)))
@@ -2169,6 +2152,23 @@ applicable agreement for further details.
 	(flipy)
 	(text "VCC" (rect 155 7 175 17)(font "Arial" (font_size 6)))
 	(annotation_block (location)(rect 259 960 315 976))
+)
+(pin
+	(bidir)
+	(rect 280 56 456 72)
+	(text "BIDIR" (rect 1 0 25 10)(font "Arial" (font_size 6)))
+	(text "SMA_trig" (rect 90 0 133 12)(font "Arial" ))
+	(pt 0 8)
+	(drawing
+		(line (pt 56 4)(pt 78 4))
+		(line (pt 0 8)(pt 52 8))
+		(line (pt 56 12)(pt 78 12))
+		(line (pt 78 4)(pt 82 8))
+		(line (pt 78 12)(pt 82 8))
+		(line (pt 56 4)(pt 52 8))
+		(line (pt 52 8)(pt 56 12))
+	)
+	(text "VCC" (rect 4 7 24 17)(font "Arial" (font_size 6)))
 )
 (symbol
 	(rect -104 1096 176 1352)
@@ -4728,10 +4728,6 @@ applicable agreement for further details.
 	(text "clocked_trig" (rect 1151 -91 1163 -32)(font "Arial" )(vertical))
 	(pt 1168 -32)
 	(pt 1168 -56)
-)
-(connector
-	(pt 800 168)
-	(pt 808 168)
 )
 (connector
 	(pt 800 232)
