@@ -69,6 +69,9 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	type 	RESET_TRIG_TYPE	is (RESETT, RELAXT);
 	signal	RESET_TRIG_STATE:	RESET_TRIG_TYPE;
 	
+	type  COUNT_FINE_BINS_TYPE is (ONE, TWO, THREE, FOUR, FIVE, SIX, SEVEN, EIGHT, NINE, TEN);
+	signal COUNT_FINE_BINS_STATE : COUNT_FINE_BINS_TYPE;
+	
 	--type to generate scaler mode based of 1 Hz clock
 	type COUNT_RATE_TYPE    is (SELF_COUNT, SELF_COUNT_LATCH, SELF_COUNT_RESET);
 	signal	COUNT_RATE_OF_SELFTRIG :	COUNT_RATE_TYPE;
@@ -88,7 +91,7 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	
 	signal SELF_TRIGGER   				: std_logic_vector (29 downto 0); 	-- self trigger bits
 	signal SCALER_LATCH					: std_logic_vector (29 downto 0);	
-	signal SELF_TRIGGER_LATCHED		: std_logic_vector (29 downto 0); 	-- latched self trigger bits
+	signal SELF_TRIG_LATCHED			: std_logic_vector (29 downto 0); 	-- latched self trigger bits
 	signal SELF_TRIGGER_CLOCKED		: std_logic_vector (29 downto 0); 	-- latched self trigger bits
 
 	signal SELF_TRIGGER_LATCHED_OR	: std_logic;
@@ -109,16 +112,18 @@ architecture Behavioral of psec4_trigger_GLOBAL is
 	signal SELF_COUNT_LATCH_sig		: std_logic;
 	signal SELF_COUNT_RESET_sig		: std_logic;
 	
-	signal RESET_TRIG_FROM_SOFTWARE	:	std_logic := '0';      -- trig clear signals
-	signal RESET_TRIG_COUNT				:	std_logic := '1';      -- trig clear signals
+	signal RESET_TRIG_FROM_SOFTWARE		:	std_logic := '0';      -- trig clear signals
+	signal RESET_TRIG_COUNT					:	std_logic := '1';      -- trig clear signals
 	signal RESET_TRIG_FROM_FIRMWARE_FLAG :  std_logic;
-	signal SELF_TRIG_CLR					:  std_logic;
-	signal SELFTRIG_CLEAR            :  std_logic;
+	signal SELF_TRIG_CLR						:  std_logic;
+	signal SELFTRIG_CLEAR            	:  std_logic;
 	signal reset_trig_from_scaler_mode: std_logic;
 	
 	signal SELF_WAIT_FOR_SYS_TRIG    : std_logic;
 	signal SELF_TRIG_RATE_ONLY 		: std_logic;
 	signal SELF_TRIG_EN					: std_logic;
+	signal USE_SMA_TRIG_ON_BOARD		: std_logic;
+	signal SMA_TRIG						: std_logic;
 	
 	signal trig_latch1					: std_logic_vector (29 downto 0); 
 	signal trig_latch2					: std_logic_vector (29 downto 0); 
@@ -175,23 +180,24 @@ end component;
 begin  -- Behavioral
 -------------------------------------------------------------------------------		
 	---------------------------------------------------------------
-	SELF_TRIG_EXT  <= SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO;
+	SELF_TRIG_EXT  <= SELF_TRIG_EXT_HI;
 	---------------------------------------------------------------
 	--this is the PSEC4 combined trigger signal!!!!!!!!!!!!!!!!!!!!
-	xTRIGGER_OUT	<= CC_TRIG or ((SELF_TRIG_EXT_HI or SELF_TRIG_EXT_LO) and SELF_TRIG_EN);
+	xTRIGGER_OUT	<= CC_TRIG or (SELF_TRIG_EXT_HI and SELF_TRIG_EN);
 	---------------------------------------------------------------
 	CLK_40			<= xMCLK;
-	--
+	---------------------------------------------------------------
 	xSTART_ADC <= CC_TRIG_START_ADC or SELF_TRIGGER_START_ADC;
-	--
-	SELF_TRIG_CLR <= xCLR_ALL or (not xDLL_RESET);
-	SELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE or reset_trig_from_scaler_mode 
-		or (SELF_TRIG_RATE_ONLY nor xTRIG_VALID) ;	
-	
+	---------------------------------------------------------------
+	SELF_TRIG_CLR <= xCLR_ALL or (not xDLL_RESET) or (not SELF_TRIG_EN);
+	SELFTRIG_CLEAR <= SELF_TRIG_CLR or RESET_TRIG_FROM_SOFTWARE 
+							or reset_trig_from_scaler_mode 
+							or (SELF_TRIG_RATE_ONLY nor xTRIG_VALID) ;	
+	---------------------------------------------------------------
 	xSELFTRIG_CLEAR <= SELFTRIG_CLEAR;
-	--
+	---------------------------------------------------------------
 	xSELF_TRIG_RATES <= SELF_COUNT_RATE_LATCH;
-	--
+	---------------------------------------------------------------
 ----------------------------------------------------------
 --packet-ize some meta-data
 ----------------------------------------------------------
@@ -259,38 +265,82 @@ process(xMCLK, xDONE, xCLR_ALL, xCC_TRIG)
 			CC_TRIG_START_ADC <= '1';
 		end if;
 end process;
+
 ----------------------------------------------------------
---clock domain transfers
+-----Option to use sma trigger input
 ----------------------------------------------------------
+process(xMCLK, xDONE, xCLR_ALL, xCC_TRIG)
+	begin
+		if xCLR_ALL = '1' or SELFTRIG_CLEAR = '1' or USE_SMA_TRIG_ON_BOARD = '0' then
+				----------------
+				SMA_TRIG <= '0';
+				----------------
+		elsif rising_edge(xDC_TRIG) and USE_SMA_TRIG_ON_BOARD = '1' 
+			and SELF_TRIG_EN = '1' then
+				----------------
+				SMA_TRIG <= '1';
+				----------------
+		end if;
+end process;
+
 ----------------------------------------------------------	
 --trigger 'binning' firmware
 --poor man's TDC
 ----------------------------------------------------------
---fine 'binning' counter cycle:
-rise_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
-begin
-	if clock_dll_reset_hi = '0' then
-		BIN_COUNT<= (others => '0');
-	elsif rising_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
-		BIN_COUNT <= BIN_COUNT2 + 1;	
-	end if;
-end process;
 fall_edge_bin:process(xTRIG_CLK, clock_dll_reset_hi)
 begin
 	if clock_dll_reset_hi = '0' then
-		BIN_COUNT2<= (others => '0');
+		BIN_COUNT <= (others => '0');
+		COUNT_FINE_BINS_STATE <= ONE;
+	--binning clock is 10X sample clock
 	elsif falling_edge(xTRIG_CLK) and clock_dll_reset_hi = '1' then 
-		BIN_COUNT2 <= BIN_COUNT2 + 1;	
+		case COUNT_FINE_BINS_STATE is
+			when ONE=>
+				BIN_COUNT <= "0001";
+				COUNT_FINE_BINS_STATE <= TWO;
+			when TWO=>
+				BIN_COUNT <= "0010";
+				COUNT_FINE_BINS_STATE <= THREE;
+			when THREE=>
+				BIN_COUNT <= "0011";
+				COUNT_FINE_BINS_STATE <= FOUR;
+			when FOUR=>
+				BIN_COUNT <= "0100";
+				COUNT_FINE_BINS_STATE <= FIVE;
+			when FIVE=>
+				BIN_COUNT <= "0101";
+				COUNT_FINE_BINS_STATE <= SIX;
+			when SIX=>
+				BIN_COUNT <= "0110";
+				COUNT_FINE_BINS_STATE <= SEVEN;
+			when SEVEN=>
+				BIN_COUNT <= "0111";
+				COUNT_FINE_BINS_STATE <= EIGHT;
+			when EIGHT=>
+				BIN_COUNT <= "1000";
+				COUNT_FINE_BINS_STATE <= NINE;
+			when NINE=>
+				BIN_COUNT <= "1001";
+				COUNT_FINE_BINS_STATE <= TEN;	
+			when TEN=>
+				BIN_COUNT <= "0000";
+				COUNT_FINE_BINS_STATE <= ONE;
+		end case;
 	end if;
 end process;
-process(SELF_TRIG_EXT_HI)
+----
+process(SELF_TRIG_EXT_HI) 
 begin
 	if rising_edge(SELF_TRIG_EXT_HI) then
-		BIN_COUNT_SAVE2 <= BIN_COUNT2;
-		BIN_COUNT_SAVE  <= BIN_COUNT2;
+		BIN_COUNT_SAVE <= BIN_COUNT;
 	end if;
 end process;
 --end binning
+----------------------------------------------------------
+
+----------------------------------------------------------
+--clock domain transfers
+----------------------------------------------------------
 process (xCLR_ALL, xTRIG_CLK )
 begin
 	if xCLR_ALL = '1' then
@@ -327,6 +377,7 @@ SELF_WAIT_FOR_SYS_TRIG 	<= xSELF_TRIGGER_SETTING(1);
 SELF_TRIG_RATE_ONLY 		<= xSELF_TRIGGER_SETTING(2);
 xRATE_ONLY 					<= SELF_TRIG_RATE_ONLY;
 xSELF_TRIG_SIGN			<= xSELF_TRIGGER_SETTING(3);
+USE_SMA_TRIG_ON_BOARD   <= xSELF_TRIGGER_SETTING(4);
 ----------------------------------------------------------
 SELF_TRIGGER <= xSELFTRIG_4 & xSELFTRIG_3 & xSELFTRIG_2 & xSELFTRIG_1 & xSELFTRIG_0;
 ----------------------------------------------------------
@@ -336,18 +387,85 @@ process( xTRIG_CLK, SELF_TRIGGER_LATCHED_OR,
 			xCLR_ALL, xDONE, SELFTRIG_CLEAR, xTRIG_VALID)
 begin	
 	if xCLR_ALL = '1' or (xDONE = '1' and SELF_TRIG_EN = '0') 
-		or SELFTRIG_CLEAR = '1' or SELF_TRIG_RATE_ONLY = '1' then
+		or (SELFTRIG_CLEAR = '1' and SELF_TRIG_EN = '1') or SELF_TRIG_RATE_ONLY = '1' then
 		--
 		SELF_TRIG_EXT_HI <= '0';
 		SELF_TRIG_EXT_LO <= '0';
 		--
 	--latch self-trigger signal from SELF_TRIGGER_WRAPPER or tag system trigger, depending on source
-	elsif rising_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and xTRIG_VALID= '1') or CC_TRIG = '1') then
+   --elsif rising_edge(xTRIG_CLK) and (SELF_TRIGGER_LATCHED_OR = '1' and xTRIG_VALID= '1') or CC_TRIG = '1') then
+	elsif rising_edge(xTRIG_CLK) and (((  	(xSELFTRIG_0(0)='1'and xSELF_TRIGGER_MASK(0)='1')   or
+														(xSELFTRIG_0(1)='1'and xSELF_TRIGGER_MASK(1)='1')   or
+														(xSELFTRIG_0(2)='1'and xSELF_TRIGGER_MASK(2)='1')   or
+														(xSELFTRIG_0(3)='1'and xSELF_TRIGGER_MASK(3)='1')   or
+														(xSELFTRIG_0(4)='1'and xSELF_TRIGGER_MASK(4)='1')   or
+														(xSELFTRIG_0(5)='1'and xSELF_TRIGGER_MASK(5)='1')   or
+														(xSELFTRIG_1(0)='1'and xSELF_TRIGGER_MASK(6)='1')   or
+														(xSELFTRIG_1(1)='1'and xSELF_TRIGGER_MASK(7)='1')   or
+														(xSELFTRIG_1(2)='1'and xSELF_TRIGGER_MASK(8)='1')   or
+														(xSELFTRIG_1(3)='1'and xSELF_TRIGGER_MASK(9)='1')   or
+														(xSELFTRIG_1(4)='1'and xSELF_TRIGGER_MASK(10)='1')  or
+														(xSELFTRIG_1(5)='1'and xSELF_TRIGGER_MASK(11)='1')  or
+														(xSELFTRIG_2(0)='1'and xSELF_TRIGGER_MASK(12)='1')  or
+														(xSELFTRIG_2(1)='1'and xSELF_TRIGGER_MASK(13)='1')  or
+														(xSELFTRIG_2(2)='1'and xSELF_TRIGGER_MASK(14)='1')  or
+														(xSELFTRIG_2(3)='1'and xSELF_TRIGGER_MASK(15)='1')  or
+														(xSELFTRIG_2(4)='1'and xSELF_TRIGGER_MASK(16)='1')  or
+														(xSELFTRIG_2(5)='1'and xSELF_TRIGGER_MASK(17)='1')  or	
+														(xSELFTRIG_3(0)='1'and xSELF_TRIGGER_MASK(18)='1')  or
+														(xSELFTRIG_3(1)='1'and xSELF_TRIGGER_MASK(19)='1')  or
+														(xSELFTRIG_3(2)='1'and xSELF_TRIGGER_MASK(20)='1')  or
+														(xSELFTRIG_3(3)='1'and xSELF_TRIGGER_MASK(21)='1')  or
+														(xSELFTRIG_3(4)='1'and xSELF_TRIGGER_MASK(22)='1')  or
+														(xSELFTRIG_3(5)='1'and xSELF_TRIGGER_MASK(23)='1')  or
+														(xSELFTRIG_4(0)='1'and xSELF_TRIGGER_MASK(24)='1')  or
+														(xSELFTRIG_4(1)='1'and xSELF_TRIGGER_MASK(25)='1')  or
+														(xSELFTRIG_4(2)='1'and xSELF_TRIGGER_MASK(26)='1')  or
+														(xSELFTRIG_4(3)='1'and xSELF_TRIGGER_MASK(27)='1')  or
+														(xSELFTRIG_4(4)='1'and xSELF_TRIGGER_MASK(28)='1')  or
+														(xSELFTRIG_4(5)='1'and xSELF_TRIGGER_MASK(29)='1') 
+														or SMA_TRIG = '1' )  and xTRIG_VALID= '1') or CC_TRIG = '1') then
 		--
 		SELF_TRIG_EXT_HI <= 	'1';    
 		--
+	--elsif falling_edge(xTRIG_CLK) and ((SELF_TRIGGER_LATCHED_OR = '1' and xTRIG_VALID= '1') or CC_TRIG = '1') then
+--	elsif falling_edge(xTRIG_CLK) and (((  (xSELFTRIG_0(0)='1'and xSELF_TRIGGER_MASK(0)='1')  or
+--														(xSELFTRIG_0(1)='1'and xSELF_TRIGGER_MASK(1)='1')  or
+--														(xSELFTRIG_0(2)='1'and xSELF_TRIGGER_MASK(2)='1')  or
+--														(xSELFTRIG_0(3)='1'and xSELF_TRIGGER_MASK(3)='1')  or
+--														(xSELFTRIG_0(4)='1'and xSELF_TRIGGER_MASK(4)='1')  or
+--														(xSELFTRIG_0(5)='1'and xSELF_TRIGGER_MASK(5)='1')  or
+--														(xSELFTRIG_1(0)='1'and xSELF_TRIGGER_MASK(6)='1')  or
+--														(xSELFTRIG_1(1)='1'and xSELF_TRIGGER_MASK(7)='1')  or
+--														(xSELFTRIG_1(2)='1'and xSELF_TRIGGER_MASK(8)='1')  or
+--														(xSELFTRIG_1(3)='1'and xSELF_TRIGGER_MASK(9)='1')  or
+--														(xSELFTRIG_1(4)='1'and xSELF_TRIGGER_MASK(10)='1')  or
+--														(xSELFTRIG_1(5)='1'and xSELF_TRIGGER_MASK(11)='1')  or
+--														(xSELFTRIG_2(0)='1'and xSELF_TRIGGER_MASK(12)='1')  or
+--														(xSELFTRIG_2(1)='1'and xSELF_TRIGGER_MASK(13)='1')  or
+--														(xSELFTRIG_2(2)='1'and xSELF_TRIGGER_MASK(14)='1')  or
+--														(xSELFTRIG_2(3)='1'and xSELF_TRIGGER_MASK(15)='1')  or
+--														(xSELFTRIG_2(4)='1'and xSELF_TRIGGER_MASK(16)='1')  or
+--														(xSELFTRIG_2(5)='1'and xSELF_TRIGGER_MASK(17)='1')  or	
+--														(xSELFTRIG_3(0)='1'and xSELF_TRIGGER_MASK(18)='1')  or
+--														(xSELFTRIG_3(1)='1'and xSELF_TRIGGER_MASK(19)='1')  or
+--														(xSELFTRIG_3(2)='1'and xSELF_TRIGGER_MASK(20)='1')  or
+--														(xSELFTRIG_3(3)='1'and xSELF_TRIGGER_MASK(21)='1')  or
+--														(xSELFTRIG_3(4)='1'and xSELF_TRIGGER_MASK(22)='1')  or
+--														(xSELFTRIG_3(5)='1'and xSELF_TRIGGER_MASK(23)='1')  or
+--														(xSELFTRIG_4(0)='1'and xSELF_TRIGGER_MASK(24)='1')  or
+--														(xSELFTRIG_4(1)='1'and xSELF_TRIGGER_MASK(25)='1')  or
+--														(xSELFTRIG_4(2)='1'and xSELF_TRIGGER_MASK(26)='1')  or
+--														(xSELFTRIG_4(3)='1'and xSELF_TRIGGER_MASK(27)='1')  or
+--														(xSELFTRIG_4(4)='1'and xSELF_TRIGGER_MASK(28)='1')  or
+--														(xSELFTRIG_4(5)='1'and xSELF_TRIGGER_MASK(29)='1') ) 
+--														and xTRIG_VALID= '1') or CC_TRIG = '1') then
+--		--
+--		SELF_TRIG_EXT_LO <= 	'1';    
+--		--
 	end if;
 end process;
+										
 ----------------------------------------------------------
 --process to determine whether to start ADC or 
 --release trigger signal
@@ -488,7 +606,7 @@ begin
 	end if;
 end process;	
 --generate signals to toggle above process w.r.t. slow 1Hz clock
-process(xCLR_ALL, COUNT_RATE, xSLOW_CLK, SELF_TRIGGER_LATCHED)
+process(xCLR_ALL, COUNT_RATE, xSLOW_CLK)
 begin
 	if xCLR_ALL = '1' or xDONE = '1' then 
 		SELF_COUNT_LATCH_sig <= '0';
@@ -571,7 +689,7 @@ port map(
 			xSELF_TRIG_LATCHED_OR => SELF_TRIGGER_LATCHED_OR,  
 			xSELF_TRIG_BITSUM		 => SELF_TRIGGER_NO,
 			xSELF_TRIG_CLOCKED	=> SELF_TRIGGER_CLOCKED,
-			xSELF_TRIG_LATCHED	=> SELF_TRIGGER_LATCHED);
+			xSELF_TRIG_LATCHED	=> SELF_TRIG_LATCHED);
 
 ---end internal trigger---------------------
 --------------------------------------------

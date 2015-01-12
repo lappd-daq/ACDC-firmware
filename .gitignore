@@ -18,6 +18,7 @@ $RECYCLE.BIN/
 /db
 /incremental_db
 /greybox_tmp
+/source_fucked
 *.bak
 
 *.rpt

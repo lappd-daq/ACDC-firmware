@@ -25,6 +25,9 @@ entity decode_instruct is
 		xTRIGGER				: 		in		std_logic;
 		xPLL_LOCK			:     in    std_logic;
 		
+		xALIGN_ACTIVE     :     in		std_logic;
+		xTRIG_FROM_SYS    :		in		std_logic;
+		
 		xRESET_DLL_FLAG	:		out	std_logic_vector(4 downto 0);
 		xSET_TRIG_THRESH	:		out	Word_array;
 		xSET_VBIAS			:		out	Word_array;
@@ -76,6 +79,7 @@ architecture Behavioral of decode_instruct is
 		signal TRIG_VALID				: 		std_logic := '0';
 		signal EVENT_AND_TIME_RESET: 		std_logic := '0';
 		signal TRIGGER					:     std_logic := '0';
+		signal ASYNCH_RESET			:		std_logic := '0';
 		
 		
 begin
@@ -103,7 +107,8 @@ begin
 		xSYSTEM_INSTRUCTION(2) 	<= LAST_LAST_INSTRUCTION(15 downto 0);
 		xSYSTEM_INSTRUCTION(3) 	<= LAST_LAST_INSTRUCTION(31 downto 16);
 		xSYSTEM_INSTRUCTION(4) 	<= (others => '0');
-		xGLOBAL_RESET				<= GLOBAL_RESET;
+		ASYNCH_RESET				<= xALIGN_ACTIVE and xTRIG_FROM_SYS; --hard reset only in emergency
+		xGLOBAL_RESET				<= GLOBAL_RESET or ASYNCH_RESET ;
 		xTRIG_VALID  				<= TRIG_VALID;
 		
 --driver for 48 bit system clock/timestamp mangement
@@ -158,7 +163,7 @@ begin
 		ADJUST_RO_TARGET(3)	<= RO4;
 		ADJUST_RO_TARGET(4)	<= RO5;
 		SELF_TRIG_MASK			<=	(others=>'0');
-		SELF_TRIG_SETTINGS	<=	"000000001000";
+		SELF_TRIG_SETTINGS	<=	"000000000000";
 		RESET_DLL_FLAG		<= "00000";
 		RESET_SELF_TRIG	<= '0';
 		GLOBAL_RESET      <= '0';
@@ -216,7 +221,7 @@ begin
 						GET_INSTRUCTION_STATE <= DELAY;
 
 					when set_cal_switch_instruct =>		
-						ENABLE_CAL_SWITCH <= (others => (INSTRUCT_VALUE(0)));
+						ENABLE_CAL_SWITCH <= INSTRUCTION_OPT(2 downto 0) & INSTRUCT_VALUE(11 downto 0);
 						GET_INSTRUCTION_STATE <= DELAY;	
 						
 					when set_ped_instruct =>   
