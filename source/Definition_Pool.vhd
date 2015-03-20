@@ -29,6 +29,7 @@ constant set_trig_settng_instruct: std_logic_vector := x"7";
 constant set_trig_thresh_instruct: std_logic_vector := x"8";
 constant set_ro_feedback_instruct: std_logic_vector := x"9";
 constant set_led_enable_instruct : std_logic_vector := x"A";
+constant system_setting_manage 	: std_logic_vector := x"B";
 constant system_setting_instruct : std_logic_vector := x"C";
 ---------------------------------------------------------------
 

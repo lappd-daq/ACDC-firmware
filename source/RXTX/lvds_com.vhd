@@ -47,9 +47,11 @@ entity lvds_com is
 			
 			xREAD_ADC_DATA		: in		std_logic;
 			
-			xREAD_TRIG_RATE_ONLY  : in	std_logic;
-			xSELF_TRIG_RATE_COUNT : in rate_count_array;
-			 
+			xREAD_TRIG_RATE_ONLY  	: in	std_logic;
+			xSELF_TRIG_RATE_COUNT 	: in rate_count_array;
+				
+			xSYSTEM_IS_CLEAR			: in	std_logic;
+			
 			xTX_LVDS_DATA		: out		std_logic_vector(1 downto 0);
 
 			xRADDR				: out  	std_logic_vector (RAM_ADR_SIZE-1 downto 0);
@@ -71,7 +73,7 @@ signal GET_CC_INSTRUCT_STATE	:	GET_CC_INSTRUCT_TYPE;
 
 type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3, 
 										INFO4, INFO5, INFO6, INFO7, INFO8, INFO9, INFO10, TRIG_RATE,
-										PSEC_END, MESS_END, GND_STATE, GND_STATE_END);
+										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
 signal RX_ALIGN_BITSLIP			:	std_logic;
@@ -83,9 +85,13 @@ signal GOOD_DATA					:  std_logic_vector(15 downto 0);
 
 signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
-signal CC_INSTRUCTION_READY   :	std_logic_vector(31 downto 0);
-signal INSTRUCT_READY			:	std_logic;
-signal INSTRUCT_READY_REGISTERED			:	std_logic;
+signal CC_INSTRUCTION_FULL			:	std_logic_vector(31 downto 0);
+
+signal ready_flag					: 	std_logic := '0';
+signal CC_INSTRUCTION_READY_0 :	std_logic_vector(31 downto 0);
+signal CC_INSTRUCTION_READY_1 :	std_logic_vector(31 downto 0);
+signal INSTRUCT_READY			:	std_logic := '0';
+signal INSTRUCT_READY_REGISTERED			:	std_logic_vector(2 downto 0) := "000";
 
 signal PSEC_MASK					:	std_logic_vector(4 downto 0);
 signal MASK_COUNT_VECTOR		:	std_logic_vector(2 downto 0);
@@ -101,6 +107,7 @@ signal INTERNAL_DONE				: std_logic_vector(4 downto 0) := "00000";
 signal internal_done_bit		: std_logic;
 signal mess_busy					: std_logic := '0';
 signal SYSTEM_TIME_COUNTER		: std_logic_vector(48 downto 0) := (others=>'0');
+
 
 component lvds_tranceivers
 	port (
@@ -118,19 +125,35 @@ end component;
 begin
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
-xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED;
+xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED(2);
 xRAM_READ_EN	  	<= RAM_READ_EN;
 xRADDR				<= RADDR;
 xDC_XFER_DONE		<= INTERNAL_DONE;
 xTX_BUSY				<= mess_busy;
 xRX_BUSY				<=	RX_BUSY;
 
-xINSTRUCTION <= CC_INSTRUCTION_READY;
+xINSTRUCTION 		<= CC_INSTRUCTION_READY_1;
 
 PSEC_MASK			<= xPSEC_MASK;	
 START					<= (xSTART(0) and xSTART(1) and xSTART(2) and 
 							xSTART(3) and xSTART(4)) and ALIGN_SUCCESS;
-
+							
+		
+process(xCLK_40MHz)
+begin
+	if rising_edge(xCLK_40MHz)  then
+		--Instruction valid flag transferred over 3 clock cycles
+		INSTRUCT_READY_REGISTERED 	<= INSTRUCT_READY_REGISTERED(1 downto 0)&INSTRUCT_READY;
+	end if;
+end process;
+process(xCLK_40MHz)
+begin
+	if rising_edge(xCLK_40MHz) and ready_flag = '1' then
+		--Instruction word registered twice before valid
+		CC_INSTRUCTION_READY_0     <= CC_INSTRUCTION_FULL;
+		CC_INSTRUCTION_READY_1     <= CC_INSTRUCTION_READY_0;
+	end if;
+end process;
 --software activate high--
 --bitslip RX align process--
 process(xCLK_40MHz, xALIGN_ACTIVE, xCLR_ALL)
@@ -203,9 +226,11 @@ variable i : integer range 50 downto 0;
 begin
 	if xCLR_ALL = '1' or ALIGN_SUCCESS = '0' then
 		CC_INSTRUCTION <= (others=>'0');
-		CC_INSTRUCTION_READY <= (others=>'0');
+		CC_INSTRUCTION_FULL <= (others=>'0');
+		ready_flag <= '0';
+		--CC_INSTRUCTION_READY <= (others=>'0');
 		INSTRUCT_READY <= '0';
-		INSTRUCT_READY_REGISTERED <= '0';
+		--INSTRUCT_READY_REGISTERED <= '0';
 		i := 0;
 		RX_BUSY <= '0';
 		GET_CC_INSTRUCT_STATE <= IDLE;
@@ -216,6 +241,7 @@ begin
 			when IDLE =>
 				i := 0;
 				INSTRUCT_READY <= '0';
+				ready_flag <= '0';
 				RX_BUSY <= '0';
 				if RX_DATA = STARTWORD_8a then
 					RX_BUSY <= '1';
@@ -240,15 +266,17 @@ begin
 				GET_CC_INSTRUCT_STATE <= CATCH3;
 			when CATCH3 =>
 				CC_INSTRUCTION(7 downto 0) 	<= RX_DATA;
+				ready_flag <= '1';
 				GET_CC_INSTRUCT_STATE <= DELAY;
 			
 			when DELAY =>
-			if i >1 then
-				i := 0;
-				GET_CC_INSTRUCT_STATE <= READY;
-			else
-				i := i+1;
-			end if;
+				CC_INSTRUCTION_FULL <= CC_INSTRUCTION;
+				if i >1 then
+					i := 0;
+					GET_CC_INSTRUCT_STATE <= READY;
+				else
+					i := i+1;
+				end if;
 				
 			when READY =>
 				INSTRUCT_READY <= '1';
@@ -261,9 +289,9 @@ begin
 				end if;
 		end case;
 
-	elsif rising_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
-		CC_INSTRUCTION_READY <= CC_INSTRUCTION;
-		INSTRUCT_READY_REGISTERED <= INSTRUCT_READY;
+	--elsif rising_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
+		--CC_INSTRUCTION_READY <= CC_INSTRUCTION;
+		--INSTRUCT_READY_REGISTERED <= INSTRUCT_READY;
 	end if;
 	
 end process;
@@ -289,25 +317,36 @@ begin
 	end case;
 end process;
 
-process (xCLR_ALL, xCLK_40MHz, internal_done_bit)
+--process (xCLR_ALL, xCLK_40MHz, internal_done_bit)
+--begin
+--	if xCLR_ALL = '1' then	
+--		DONE <= '0';
+--		INTERNAL_DONE <= (others=> '0');
+--	elsif rising_edge(xCLK_40MHz) and (internal_done_bit = '1' or xSYSTEM_IS_CLEAR = '1') then	
+--		DONE <= '1';
+--		INTERNAL_DONE <= (others=> '1');
+--	elsif rising_edge(xCLK_40MHz) and internal_done_bit = '0' then	
+--		DONE <= '0';
+--		INTERNAL_DONE <= (others=> '0');
+--	end if;
+--end process;
+process (xCLR_ALL, internal_done_bit)
 begin
-	if xCLR_ALL = '1' then	
+	if xCLR_ALL = '1' or xSYSTEM_IS_CLEAR = '1' then	
 		DONE <= '0';
 		INTERNAL_DONE <= (others=> '0');
-	elsif rising_edge(xCLK_40MHz) and internal_done_bit = '1' then	
+	elsif rising_edge(internal_done_bit) then
 		DONE <= '1';
 		INTERNAL_DONE <= (others=> '1');
-	elsif rising_edge(xCLK_40MHz) and internal_done_bit = '0' then	
-		DONE <= '0';
-		INTERNAL_DONE <= (others=> '0');
 	end if;
 end process;
+
 --DONE <= internal_done_bit;
 process(xCLK_40MHz, START, xCLR_ALL, PSEC_MASK)				
 variable i : integer range 50 downto 0;	
 variable mask_count : integer range 4 downto 0 := 0;	
 	begin
-	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0' then
+	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0'  then
 		RADDR 				<= "00000000000000";--(others=>'0');
 		GOOD_DATA 			<= (others=>'0');
 		RAM_CNT				<= (others=>'0');
@@ -335,8 +374,9 @@ variable mask_count : integer range 4 downto 0 := 0;
 				when INIT =>
 					--GOOD_DATA 	<= x"F005";
 					if mask_count >= 5 then
+						i:= 0;
 							--LVDS_MESS_STATE <= MESS_END;
-							LVDS_MESS_STATE <= TRIG_RATE;
+						LVDS_MESS_STATE <= TRIG_RATE;
 					
 				--	elsif PSEC_MASK(mask_count) = '0' then			
 				--			mask_count := mask_count + 1;
@@ -414,19 +454,20 @@ variable mask_count : integer range 4 downto 0 := 0;
 					--LVDS_MESS_STATE <= MESS_END;
 
 				when TRIG_RATE =>
-					if i > 29 then
+					GOOD_DATA <= xSELF_TRIG_RATE_COUNT(i)(15 downto 0);
+					
+					if i = 29 then
 						i := 0;
 						LVDS_MESS_STATE <= MESS_END;	
 					else
 						i := i+1;
-						GOOD_DATA <= xSELF_TRIG_RATE_COUNT(i)(15 downto 0);
 					end if;
 					
 				when MESS_END =>	
 
 					if i > 2 then
 						i := 0;
-						LVDS_MESS_STATE <= GND_STATE;	
+						LVDS_MESS_STATE <= CC_DONE;	
 					
 					else
 						GOOD_DATA <= ENDWORD;	
@@ -434,7 +475,14 @@ variable mask_count : integer range 4 downto 0 := 0;
 						i := i+1;	
 					end if;
 						
-				
+				when CC_DONE =>
+					GOOD_DATA <= (others=>'0');
+					--if xSYSTEM_IS_CLEAR = '1' then
+						LVDS_MESS_STATE <= GND_STATE;	
+					--else
+					--	LVDS_MESS_STATE <= CC_DONE;	
+					--end if;
+					
 				when GND_STATE =>			
 					if i > 4 then
 						internal_done_bit <= '0';

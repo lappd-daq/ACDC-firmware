@@ -176,6 +176,7 @@ entity AC_CONTROL is
 		
 		xCLK_10Hz				: in	std_logic;
 		xTRIG_VALID				: in 	std_logic;
+		xDONE_SIGNAL_FROM_SYS: in	std_logic;
 		
 		MONITOR_PSEC0	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC1	:	out	std_logic_vector(23 downto 0);
@@ -192,7 +193,8 @@ entity AC_CONTROL is
 		xTRIG_INFO						: out Word_array;
 		xSAMPLE_INFO					: out Word_array;
 		xSELF_TRIG_RATES				: out rate_count_array;
-		xRATE_ONLY						: out std_logic);
+		xRATE_ONLY						: out std_logic;
+		xDIG_TRIG						:  out	std_logic);
 		
 end AC_CONTROL;
 
@@ -276,13 +278,16 @@ component psec4_control
 		xRAMR_EN		:	in		std_logic;			--enable read from ram
 		xRD_ADDRESS	:	in		std_logic_vector(RAM_ADR_SIZE-1 downto 0);	
 		xRAWDATA		:	in		std_logic_vector(12 downto 0);--data from chips
+		xSELF_TRIG_EN :in		std_logic;
+		xTRIG_VALID	:  in		std_logic;
+		xDONE_FROM_SYS:in		std_logic;
 		xRAMDATA		:	out	std_logic_vector(15 downto 0);--data stored in RAM
 		xTOK_IN1		:	out	std_logic;			--readout token 1 & 2
 		xTOK_IN2		: 	out	std_logic;
 		xCHAN_SEL	:	out	std_logic_vector(2 downto 0);			--channel select addr. (0-5)
 		xBLOCK_SEL	:	out	std_logic_vector(2 downto 0);			--block select addr. (0-3)
 		xSTART		:	out	std_logic;			--USB, etc. start write signal
-		xMONITOR		:	out	std_logic_vector(23 downto 0));
+		xMONITOR		:	out	std_logic_vector(23 downto 0));		
 end component;
 
 component psec4_trigger_GLOBAL
@@ -311,7 +316,8 @@ component psec4_trigger_GLOBAL
 			xDLL_RESET				: in	std_logic;
 			xPLL_LOCK				: in	std_logic;
 			xTRIG_VALID   			: in	std_logic;
-						
+			xDONE_FROM_SYS			: in	std_logic;
+			
 			xTRIGGER_OUT			: out	std_logic;
 			xSTART_ADC				: out std_logic;
 
@@ -490,22 +496,23 @@ begin
 	PSEC_A_ChanDECODE(1) <=	CHAN_SEL(0)(1);
 	PSEC_A_ChanDECODE(2) <=	CHAN_SEL(0)(2);
 	
-	PSEC_A_TokDECODE	<=	BLOCK_SEL(0);
-	PSEC_A_TOKin	 	<=	TOKIN2(0) & TOKIN1(0);
-	PSEC_B_ChanDECODE <=	CHAN_SEL(1);
-	PSEC_B_TokDECODE 	<=	BLOCK_SEL(1);
-	PSEC_B_TOKin 		<=	TOKIN2(1) & TOKIN1(1);
-	PSEC_C_ChanDECODE <=	CHAN_SEL(2);
-	PSEC_C_TokDECODE 	<=	BLOCK_SEL(2);
-	PSEC_C_TOKin 		<=	TOKIN2(2) & TOKIN1(2);
-	PSEC_D_ChanDECODE <=	CHAN_SEL(3);
-	PSEC_D_TokDECODE 	<=	BLOCK_SEL(3);
-	PSEC_D_TOKin		<=	TOKIN2(3) & TOKIN1(3);
-	PSEC_E_ChanDECODE <=	CHAN_SEL(4);
-	PSEC_E_TokDECODE 	<=	BLOCK_SEL(4);
-	PSEC_E_TOKin 		<=	TOKIN2(4) & TOKIN1(4);
+	PSEC_A_TokDECODE		<=	BLOCK_SEL(0);
+	PSEC_A_TOKin	 		<=	TOKIN2(0) & TOKIN1(0);
+	PSEC_B_ChanDECODE 	<=	CHAN_SEL(1);
+	PSEC_B_TokDECODE 		<=	BLOCK_SEL(1);
+	PSEC_B_TOKin 			<=	TOKIN2(1) & TOKIN1(1);
+	PSEC_C_ChanDECODE 	<=	CHAN_SEL(2);
+	PSEC_C_TokDECODE 		<=	BLOCK_SEL(2);
+	PSEC_C_TOKin 			<=	TOKIN2(2) & TOKIN1(2);
+	PSEC_D_ChanDECODE 	<=	CHAN_SEL(3);
+	PSEC_D_TokDECODE 		<=	BLOCK_SEL(3);
+	PSEC_D_TOKin			<=	TOKIN2(3) & TOKIN1(3);
+	PSEC_E_ChanDECODE 	<=	CHAN_SEL(4);
+	PSEC_E_TokDECODE 		<=	BLOCK_SEL(4);
+	PSEC_E_TOKin 			<=	TOKIN2(4) & TOKIN1(4);
 	
 	xTRIG_SIGN  <= SELF_TRIG_SIGN;
+	xDIG_TRIG	<= start_adc_flag;
 --	-----------------------------------------------------------------------------------------------
 --   --info to send to DAQ
 --	xTRIG_INFO(0)		<= "000" & SELF_TRIG_SIGN & xSELF_TRIGGER_SETTING;
@@ -551,6 +558,10 @@ begin
 			xRAMR_EN			=>		xRAMR_EN(i),
 			xRD_ADDRESS		=>		xRD_ADDRESS,
 			xRAWDATA			=>		RAWDATA(i),
+			xSELF_TRIG_EN  =>    xSELF_TRIGGER_SETTING(0),
+			xTRIG_VALID	   =>		xTRIG_VALID,
+			xDONE_FROM_SYS =>    xDONE_SIGNAL_FROM_SYS,
+
 			xRAMDATA			=>		xRAMDATA(i),
 			xTOK_IN1			=>		TOKIN1(i),
 			xTOK_IN2			=>		TOKIN2(i),
@@ -585,6 +596,7 @@ begin
 			xDLL_RESET			=>	DLL_RESET(0),
 			xPLL_LOCK			=>	xPLL_LOCK,
 			xTRIG_VALID   		=> xTRIG_VALID,
+			xDONE_FROM_SYS		=> xDONE_SIGNAL_FROM_SYS,
 			
 			xTRIGGER_OUT		=> trigger_flag,
 			xSTART_ADC			=>  start_adc_flag,

@@ -50,6 +50,9 @@ entity psec4_control is
 		xRAMR_EN		:	in		std_logic;			--enable read from ram
 		xRD_ADDRESS	:	in		std_logic_vector(RAM_ADR_SIZE-1 downto 0);	
 		xRAWDATA		:	in		std_logic_vector(12 downto 0);--data from chips
+		xSELF_TRIG_EN :in		std_logic;
+		xTRIG_VALID	:  in		std_logic;
+		xDONE_FROM_SYS:in		std_logic;
 		xRAMDATA		:	out	std_logic_vector(15 downto 0);--data stored in RAM
 		xTOK_IN1		:	out	std_logic;			--readout token 1 & 2
 		xTOK_IN2		: 	out	std_logic;
@@ -206,7 +209,8 @@ begin
 	process(xMCLK, xCLR_ALL, xDONE, xTRIG_FLAG)
 	variable i : integer range 50 downto 0;
 	begin
-		if xDONE = '1' or xCLR_ALL = '1' then 
+		if xCLR_ALL = '1' or xDONE_FROM_SYS = '1' or
+			xDONE = '1'	then 
 			RAMP 			<='0';
 			RAMP_DONE 	<= '0';
 			RAMP_CNT 	<= (others => '0');
@@ -288,7 +292,9 @@ begin
 	process(xRD_CLKIN, xDONE, xCLR_ALL, RAMP_DONE)
 	begin
 	
-		if xDONE = '1' or xCLR_ALL = '1' then
+		if xCLR_ALL = '1' or xDONE_FROM_SYS = '1' or
+			xDONE = '1'  then
+			
 			TOK_CNT 		<= "00";
 			W_EN			<= '0';
 			W_EN_TEMP 	<= '0';
