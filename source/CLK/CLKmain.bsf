@@ -1,0 +1,274 @@
+/*
+WARNING: Do NOT edit the input and output ports in this file in a text
+editor if you plan to continue editing the block that represents it in
+the Block Editor! File corruption is VERY likely to occur.
+*/
+/*
+Copyright (C) 1991-2012 Altera Corporation
+Your use of Altera Corporation's design tools, logic functions 
+and other software and tools, and its AMPP partner logic 
+functions, and any output files from any of the foregoing 
+(including device programming or simulation files), and any 
+associated documentation or information are expressly subject 
+to the terms and conditions of the Altera Program License 
+Subscription Agreement, Altera MegaCore Function License 
+Agreement, or other applicable license agreement, including, 
+without limitation, that your use is for the sole purpose of 
+programming logic devices manufactured by Altera and sold by 
+Altera or its authorized distributors.  Please refer to the 
+applicable agreement for further details.
+*/
+(header "symbol" (version "1.2"))
+(symbol
+	(rect 16 16 360 528)
+	(text "CLKmain" (rect 5 0 54 14)(font "Arial" (font_size 8)))
+	(text "inst" (rect 8 496 25 508)(font "Arial" ))
+	(port
+		(pt 0 32)
+		(input)
+		(text "masterCLK" (rect 0 0 62 14)(font "Arial" (font_size 8)))
+		(text "masterCLK" (rect 21 27 83 41)(font "Arial" (font_size 8)))
+		(line (pt 0 32)(pt 16 32))
+	)
+	(port
+		(pt 0 48)
+		(input)
+		(text "PLL_BOARD_CLOCK" (rect 0 0 120 14)(font "Arial" (font_size 8)))
+		(text "PLL_BOARD_CLOCK" (rect 21 43 141 57)(font "Arial" (font_size 8)))
+		(line (pt 0 48)(pt 16 48))
+	)
+	(port
+		(pt 0 64)
+		(input)
+		(text "PLL_SPI_MISO" (rect 0 0 82 14)(font "Arial" (font_size 8)))
+		(text "PLL_SPI_MISO" (rect 21 59 103 73)(font "Arial" (font_size 8)))
+		(line (pt 0 64)(pt 16 64))
+	)
+	(port
+		(pt 0 80)
+		(input)
+		(text "PLL_LOCK" (rect 0 0 61 14)(font "Arial" (font_size 8)))
+		(text "PLL_LOCK" (rect 21 75 82 89)(font "Arial" (font_size 8)))
+		(line (pt 0 80)(pt 16 80))
+	)
+	(port
+		(pt 0 96)
+		(input)
+		(text "system40M" (rect 0 0 64 14)(font "Arial" (font_size 8)))
+		(text "system40M" (rect 21 91 85 105)(font "Arial" (font_size 8)))
+		(line (pt 0 96)(pt 16 96))
+	)
+	(port
+		(pt 0 112)
+		(input)
+		(text "software_clear" (rect 0 0 88 14)(font "Arial" (font_size 8)))
+		(text "software_clear" (rect 21 107 109 121)(font "Arial" (font_size 8)))
+		(line (pt 0 112)(pt 16 112))
+	)
+	(port
+		(pt 0 128)
+		(input)
+		(text "pll_mode[1..0]" (rect 0 0 77 14)(font "Arial" (font_size 8)))
+		(text "pll_mode[1..0]" (rect 21 123 98 137)(font "Arial" (font_size 8)))
+		(line (pt 0 128)(pt 16 128)(line_width 3))
+	)
+	(port
+		(pt 344 32)
+		(output)
+		(text "xCLK_READ" (rect 0 0 70 14)(font "Arial" (font_size 8)))
+		(text "xCLK_READ" (rect 253 27 323 41)(font "Arial" (font_size 8)))
+		(line (pt 344 32)(pt 328 32))
+	)
+	(port
+		(pt 344 48)
+		(output)
+		(text "xCLK200K" (rect 0 0 60 14)(font "Arial" (font_size 8)))
+		(text "xCLK200K" (rect 263 43 323 57)(font "Arial" (font_size 8)))
+		(line (pt 344 48)(pt 328 48))
+	)
+	(port
+		(pt 344 64)
+		(output)
+		(text "xCLK1000" (rect 0 0 59 14)(font "Arial" (font_size 8)))
+		(text "xCLK1000" (rect 264 59 323 73)(font "Arial" (font_size 8)))
+		(line (pt 344 64)(pt 328 64))
+	)
+	(port
+		(pt 344 80)
+		(output)
+		(text "xCLK100" (rect 0 0 51 14)(font "Arial" (font_size 8)))
+		(text "xCLK100" (rect 272 75 323 89)(font "Arial" (font_size 8)))
+		(line (pt 344 80)(pt 328 80))
+	)
+	(port
+		(pt 344 96)
+		(output)
+		(text "xCLK10" (rect 0 0 44 14)(font "Arial" (font_size 8)))
+		(text "xCLK10" (rect 279 91 323 105)(font "Arial" (font_size 8)))
+		(line (pt 344 96)(pt 328 96))
+	)
+	(port
+		(pt 344 112)
+		(output)
+		(text "xCLK1" (rect 0 0 37 14)(font "Arial" (font_size 8)))
+		(text "xCLK1" (rect 286 107 323 121)(font "Arial" (font_size 8)))
+		(line (pt 344 112)(pt 328 112))
+	)
+	(port
+		(pt 344 128)
+		(output)
+		(text "xCLR_ALL" (rect 0 0 61 14)(font "Arial" (font_size 8)))
+		(text "xCLR_ALL" (rect 262 123 323 137)(font "Arial" (font_size 8)))
+		(line (pt 344 128)(pt 328 128))
+	)
+	(port
+		(pt 344 144)
+		(output)
+		(text "xRESET" (rect 0 0 44 14)(font "Arial" (font_size 8)))
+		(text "xRESET" (rect 279 139 323 153)(font "Arial" (font_size 8)))
+		(line (pt 344 144)(pt 328 144))
+	)
+	(port
+		(pt 344 160)
+		(output)
+		(text "PLL_REV_CLK_OUT" (rect 0 0 115 14)(font "Arial" (font_size 8)))
+		(text "PLL_REV_CLK_OUT" (rect 208 155 323 169)(font "Arial" (font_size 8)))
+		(line (pt 344 160)(pt 328 160))
+	)
+	(port
+		(pt 344 176)
+		(output)
+		(text "PLL_LED[8..0]" (rect 0 0 79 14)(font "Arial" (font_size 8)))
+		(text "PLL_LED[8..0]" (rect 244 171 323 185)(font "Arial" (font_size 8)))
+		(line (pt 344 176)(pt 328 176)(line_width 3))
+	)
+	(port
+		(pt 344 192)
+		(output)
+		(text "PLL_REV_CLK_N" (rect 0 0 99 14)(font "Arial" (font_size 8)))
+		(text "PLL_REV_CLK_N" (rect 224 187 323 201)(font "Arial" (font_size 8)))
+		(line (pt 344 192)(pt 328 192))
+	)
+	(port
+		(pt 344 208)
+		(output)
+		(text "PLL_REV_CLK_P" (rect 0 0 97 14)(font "Arial" (font_size 8)))
+		(text "PLL_REV_CLK_P" (rect 226 203 323 217)(font "Arial" (font_size 8)))
+		(line (pt 344 208)(pt 328 208))
+	)
+	(port
+		(pt 344 224)
+		(output)
+		(text "PLL_SPI_CLK" (rect 0 0 76 14)(font "Arial" (font_size 8)))
+		(text "PLL_SPI_CLK" (rect 247 219 323 233)(font "Arial" (font_size 8)))
+		(line (pt 344 224)(pt 328 224))
+	)
+	(port
+		(pt 344 240)
+		(output)
+		(text "PLL_SPI_LE" (rect 0 0 67 14)(font "Arial" (font_size 8)))
+		(text "PLL_SPI_LE" (rect 256 235 323 249)(font "Arial" (font_size 8)))
+		(line (pt 344 240)(pt 328 240))
+	)
+	(port
+		(pt 344 256)
+		(output)
+		(text "PLL_SPI_MOSI" (rect 0 0 82 14)(font "Arial" (font_size 8)))
+		(text "PLL_SPI_MOSI" (rect 241 251 323 265)(font "Arial" (font_size 8)))
+		(line (pt 344 256)(pt 328 256))
+	)
+	(port
+		(pt 344 272)
+		(output)
+		(text "PLL_MONITOR_HEADER[15..0]" (rect 0 0 173 14)(font "Arial" (font_size 8)))
+		(text "PLL_MONITOR_HEADER[15..0]" (rect 150 267 323 281)(font "Arial" (font_size 8)))
+		(line (pt 344 272)(pt 328 272)(line_width 3))
+	)
+	(port
+		(pt 344 288)
+		(output)
+		(text "PLL_NOT_POWER_DOWN" (rect 0 0 148 14)(font "Arial" (font_size 8)))
+		(text "PLL_NOT_POWER_DOWN" (rect 175 283 323 297)(font "Arial" (font_size 8)))
+		(line (pt 344 288)(pt 328 288))
+	)
+	(port
+		(pt 344 304)
+		(output)
+		(text "PLL_TEST_MODE" (rect 0 0 99 14)(font "Arial" (font_size 8)))
+		(text "PLL_TEST_MODE" (rect 224 299 323 313)(font "Arial" (font_size 8)))
+		(line (pt 344 304)(pt 328 304))
+	)
+	(port
+		(pt 344 320)
+		(output)
+		(text "PLL_SYNC" (rect 0 0 62 14)(font "Arial" (font_size 8)))
+		(text "PLL_SYNC" (rect 261 315 323 329)(font "Arial" (font_size 8)))
+		(line (pt 344 320)(pt 328 320))
+	)
+	(port
+		(pt 344 336)
+		(output)
+		(text "PLL_REF_SEL" (rect 0 0 80 14)(font "Arial" (font_size 8)))
+		(text "PLL_REF_SEL" (rect 243 331 323 345)(font "Arial" (font_size 8)))
+		(line (pt 344 336)(pt 328 336))
+	)
+	(port
+		(pt 344 352)
+		(output)
+		(text "clk40M_pll_system" (rect 0 0 106 14)(font "Arial" (font_size 8)))
+		(text "clk40M_pll_system" (rect 217 347 323 361)(font "Arial" (font_size 8)))
+		(line (pt 344 352)(pt 328 352))
+	)
+	(port
+		(pt 344 368)
+		(output)
+		(text "LED_other[7..0]" (rect 0 0 87 14)(font "Arial" (font_size 8)))
+		(text "LED_other[7..0]" (rect 236 363 323 377)(font "Arial" (font_size 8)))
+		(line (pt 344 368)(pt 328 368)(line_width 3))
+	)
+	(port
+		(pt 344 384)
+		(output)
+		(text "system40Mout" (rect 0 0 82 14)(font "Arial" (font_size 8)))
+		(text "system40Mout" (rect 241 379 323 393)(font "Arial" (font_size 8)))
+		(line (pt 344 384)(pt 328 384))
+	)
+	(port
+		(pt 344 400)
+		(output)
+		(text "clk320M" (rect 0 0 46 14)(font "Arial" (font_size 8)))
+		(text "clk320M" (rect 277 395 323 409)(font "Arial" (font_size 8)))
+		(line (pt 344 400)(pt 328 400))
+	)
+	(port
+		(pt 344 416)
+		(output)
+		(text "clk1_system" (rect 0 0 70 14)(font "Arial" (font_size 8)))
+		(text "clk1_system" (rect 253 411 323 425)(font "Arial" (font_size 8)))
+		(line (pt 344 416)(pt 328 416))
+	)
+	(port
+		(pt 344 432)
+		(output)
+		(text "FPGA_pll_locked" (rect 0 0 95 14)(font "Arial" (font_size 8)))
+		(text "FPGA_pll_locked" (rect 228 427 323 441)(font "Arial" (font_size 8)))
+		(line (pt 344 432)(pt 328 432))
+	)
+	(port
+		(pt 344 448)
+		(output)
+		(text "pll_local_lock" (rect 0 0 74 14)(font "Arial" (font_size 8)))
+		(text "pll_local_lock" (rect 249 443 323 457)(font "Arial" (font_size 8)))
+		(line (pt 344 448)(pt 328 448))
+	)
+	(port
+		(pt 344 464)
+		(output)
+		(text "pll_config" (rect 0 0 54 14)(font "Arial" (font_size 8)))
+		(text "pll_config" (rect 269 459 323 473)(font "Arial" (font_size 8)))
+		(line (pt 344 464)(pt 328 464))
+	)
+	(drawing
+		(rectangle (rect 16 16 328 496))
+	)
+)

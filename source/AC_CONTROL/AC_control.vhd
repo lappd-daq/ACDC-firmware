@@ -200,7 +200,8 @@ entity AC_CONTROL is
 		xSELF_TRIG_RATES				: out rate_count_array;
 		xRATE_ONLY						: out std_logic;
 		xDIG_TRIG						:  out	std_logic;
-		xTRIG_SIGNAL_REG				: out	std_logic_vector(2 downto 0));
+		xTRIG_SIGNAL_REG				: out	std_logic_vector(2 downto 0);
+		xVCDL_COUNT						: out DWord_array);
 		
 end AC_CONTROL;
 
@@ -293,6 +294,7 @@ component psec4_control
 		xCHAN_SEL	:	out	std_logic_vector(2 downto 0);			--channel select addr. (0-5)
 		xBLOCK_SEL	:	out	std_logic_vector(2 downto 0);			--block select addr. (0-3)
 		xSTART		:	out	std_logic;			--USB, etc. start write signal
+		xVCDL_COUNT :  out   std_logic_vector(31 downto 0);
 		xMONITOR		:	out	std_logic_vector(23 downto 0));		
 end component;
 
@@ -577,6 +579,7 @@ begin
 			xCHAN_SEL		=>		CHAN_SEL(i),
 			xBLOCK_SEL		=>		BLOCK_SEL(i),
 			xSTART			=>		xSTART(i),
+			xVCDL_COUNT    =>    xVCDL_COUNT(i),
 			xMONITOR			=>		MONITOR_ASIC(i));	
 	end generate AC_TIMING_CONTROL;
 	

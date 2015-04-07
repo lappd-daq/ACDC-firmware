@@ -35,6 +35,8 @@ $RECYCLE.BIN/
 *.qip
 *.ppf
 *.txt
+*.qar
+*.qarlog
 
 # =========================
 # Operating System Files
@@ -48,8 +50,7 @@ $RECYCLE.BIN/
 .LSOverride
 
 # Icon must end with two \r
-Icon
-
+Icon
 # Thumbnails
 ._*
 

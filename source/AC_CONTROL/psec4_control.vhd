@@ -59,6 +59,7 @@ entity psec4_control is
 		xCHAN_SEL	:	out	std_logic_vector(2 downto 0);			--channel select addr. (0-5)
 		xBLOCK_SEL	:	out	std_logic_vector(2 downto 0);			--block select addr. (0-3)
 		xSTART		:	out	std_logic;			--USB, etc. start write signal
+		xVCDL_COUNT :  out   std_logic_vector(31 downto 0);
 		xMONITOR		:	out	std_logic_vector(23 downto 0));
 end psec4_control;
 
@@ -125,6 +126,14 @@ architecture BEHAVIORAL of psec4_control is
 			CURRENT_COUNT_VALUE : out std_logic_vector(15 downto 0);
 			DESIRED_DAC_VALUE   : out std_logic_vector(11 downto 0));
     end component;
+	 
+	component VCDL_Monitor_Loop
+   Port (
+                                RESET_FEEDBACK      : in std_logic;
+                                REFRESH_CLOCK       : in std_logic; --One period of this clock defines how long we count Wilkinson rate pulses
+                                VCDL_MONITOR_BIT    : in std_logic;
+                                CURRENT_COUNT_VALUE : out std_logic_vector(31 downto 0));
+	end component;
 -------------------------------------------------------------
 begin
 -------------------------------------------------------------
@@ -384,6 +393,13 @@ begin
          DESIRED_COUNT_VALUE 	=> xDESIRECOUNT,
          CURRENT_COUNT_VALUE 	=> xCOUNT_VALUE,
          DESIRED_DAC_VALUE   	=> xDAC_VALUE);
+			
+    xVCDL_MON : VCDL_Monitor_Loop 
+        port map(
+                                RESET_FEEDBACK      => xRESETFDBK,
+                                REFRESH_CLOCK       => xREFRSH_CLK,
+                                VCDL_MONITOR_BIT    => xDLL_CLOCK,
+                                CURRENT_COUNT_VALUE => xVCDL_COUNT);
 						
 end BEHAVIORAL;
 	

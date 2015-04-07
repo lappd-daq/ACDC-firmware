@@ -168,7 +168,7 @@ begin  -- Behavioral
 process(xPLL_MODE)
 begin
 	case xPLL_MODE is
-		when "10" =>
+		when "11" =>
       --24 MHz and 40 on channel 5
 		iREGISTER(0)(31 downto 0) <= x"011E0320";
 		iREGISTER(1)(31 downto 0) <= x"011E0301";
@@ -180,7 +180,7 @@ begin
 		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
 		iREGISTER(8)(31 downto 0) <= x"20009D98";
 		
-		when "01" =>
+		when "10" =>
       --32 MHz and 40 on channel 5
 		iREGISTER(0)(31 downto 0) <= x"01160320";
 		iREGISTER(1)(31 downto 0) <= x"01160301";
@@ -191,7 +191,18 @@ begin
 		iREGISTER(6)(31 downto 0) <= x"042E02E6";
 		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
 		iREGISTER(8)(31 downto 0) <= x"20009D98";
-		
+			
+		when "01" =>
+      --36 MHz and 40 on channel 5
+		iREGISTER(0)(31 downto 0) <= x"010E0320";
+		iREGISTER(1)(31 downto 0) <= x"010E0301";
+		iREGISTER(2)(31 downto 0) <= x"010E0302";
+		iREGISTER(3)(31 downto 0) <= x"010E0323";
+		iREGISTER(4)(31 downto 0) <= x"01120314";
+		iREGISTER(5)(31 downto 0) <= x"FC040BE5";
+		iREGISTER(6)(31 downto 0) <= x"042E04B6";
+		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
+		iREGISTER(8)(31 downto 0) <= x"20009D98";	
 		
 		when "00" =>
 		iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref

@@ -34,7 +34,12 @@ entity lvds_com is
 			xINFO8				: in   ChipData_array;
 			xINFO9				: in   ChipData_array;
 			xINFO10				: in   ChipData_array;
+			xINFO11				: in   ChipData_array;
+			xINFO12				: in   ChipData_array;
+			xINFO13				: in 	 ChipData_array;
+			
 			xEVT_CNT				: in   EvtCnt_array;
+			
 				
 			xCLK_40MHz			: in		std_logic;
 			 
@@ -73,7 +78,8 @@ type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, DEL
 signal GET_CC_INSTRUCT_STATE	:	GET_CC_INSTRUCT_TYPE;
 
 type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3, 
-										INFO4, INFO5, INFO6, INFO7, INFO8, INFO9, INFO10, TRIG_RATE,
+										INFO4, INFO5, INFO6, INFO7, INFO8, INFO9, INFO10, INFO11, INFO12, INFO13,
+										TRIG_RATE,
 										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
@@ -416,48 +422,47 @@ variable mask_count : integer range 4 downto 0 := 0;
 				when INFO0 =>
 					RAM_CNT <= (others=> '0');
 					GOOD_DATA <= x"BA11";	
-					LVDS_MESS_STATE <= INFO1;				
-				
+					LVDS_MESS_STATE <= INFO1;								
 				when INFO1 =>
 					GOOD_DATA <= xINFO1(mask_count);	
-					LVDS_MESS_STATE <= INFO2;	
-				
+					LVDS_MESS_STATE <= INFO2;					
 				when INFO2 =>	
 					GOOD_DATA <= xINFO2(mask_count);	
-					LVDS_MESS_STATE  <= INFO3;	
-				
+					LVDS_MESS_STATE  <= INFO3;					
 				when INFO3 =>	
 					GOOD_DATA <= xINFO3(mask_count);	
-					LVDS_MESS_STATE  <= INFO4;	
-				
+					LVDS_MESS_STATE  <= INFO4;					
 				when INFO4 =>	
 					GOOD_DATA <= xINFO4(mask_count);	
 					LVDS_MESS_STATE  <= INFO5;	
-				
 				when INFO5 =>	
 					GOOD_DATA <= xINFO5(mask_count);	
-					LVDS_MESS_STATE <= INFO6;	
-				
+					LVDS_MESS_STATE <= INFO6;					
 				when INFO6 =>	
 					GOOD_DATA <= xINFO6(mask_count);	
-					LVDS_MESS_STATE <= INFO7;	
-				
+					LVDS_MESS_STATE <= INFO7;					
 				when INFO7 =>	
 					GOOD_DATA <= xINFO7(mask_count);	
-					LVDS_MESS_STATE <= INFO8;						
-					
+					LVDS_MESS_STATE <= INFO8;											
 				when INFO8 =>	
 					GOOD_DATA <= xINFO8(mask_count);	
-					LVDS_MESS_STATE <= INFO9;	
-					
+					LVDS_MESS_STATE <= INFO9;						
 				when INFO9 =>	
 					GOOD_DATA <= xINFO9(mask_count);	
-					LVDS_MESS_STATE <= INFO10;	
-				
+					LVDS_MESS_STATE <= INFO10;		
 				when INFO10 =>	
 					GOOD_DATA <= xINFO10(mask_count);	
-					LVDS_MESS_STATE <= PSEC_END;										
-				
+					LVDS_MESS_STATE <= INFO11;										
+				when INFO11 =>	
+					GOOD_DATA <= xINFO11(mask_count);	
+					LVDS_MESS_STATE <= INFO12;	
+				when INFO12 =>	
+					GOOD_DATA <= xINFO12(mask_count);	
+					LVDS_MESS_STATE <= INFO13;	
+				when INFO13 =>	
+					GOOD_DATA <= xINFO13(mask_count);	
+					LVDS_MESS_STATE <= PSEC_END;	
+					
 				when PSEC_END =>
 					GOOD_DATA <= PSEC_END_WORD;
 					mask_count := mask_count + 1;

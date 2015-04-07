@@ -68,6 +68,7 @@ type Address_array 		is array	(4 downto 0) of 	std_logic_vector(2 downto 0);
 type trigger_array 		is array (5 downto 0) of 	std_logic_vector(15 downto 0);
 type bias_array 			is array (4 downto 0) of 	std_logic_vector (11 downto 0);				
 type rate_count_array 	is array	(29 downto 0)of	std_logic_vector (15 downto 0);
+type DWord_array			is array	(4 downto 0) of 	std_logic_vector(31 downto 0);
 
 constant RO1          : std_logic_vector(15 downto 0) := x"CA00";
 constant RO2          : std_logic_vector(15 downto 0) := x"CA00";
