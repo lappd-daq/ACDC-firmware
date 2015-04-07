@@ -32,7 +32,9 @@ entity PLL_CONFIG is
 			  PLL_LOCK : in STD_LOGIC;
 			  xUPDATE	:	in	STD_LOGIC;
 			  xCLR_ALL	:	in	STD_LOGIC;
-			  PLL_REF_SEL : out STD_LOGIC);
+			  xPLL_MODE	: in std_logic_vector(1 downto 0);
+			  PLL_REF_SEL : out STD_LOGIC;
+			  xPLL_CONFIG_OUT	: out std_logic);
 end PLL_CONFIG;
 
 architecture Behavioral of PLL_CONFIG is
@@ -66,6 +68,7 @@ architecture Behavioral of PLL_CONFIG is
 	signal internal_PLL_SPI_CLK_ENABLE : std_logic := '0';
 	signal internal_PLL_SPI_CLK : std_logic;
 	signal internal_MONITOR_HEADER : std_logic_vector(15 downto 0);
+	
   
   type SPI_REGISTER is array(8 downto 0) of std_logic_vector(31 downto 0);
   signal iREGISTER : SPI_REGISTER;
@@ -122,15 +125,15 @@ begin  -- Behavioral
 --iREGISTER(7)(31 downto 0) <= x"BD913DB7";
 --iREGISTER(8)(31 downto 0) <= x"20009D98";
 --										--40 MHz using PLL
-iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
-iREGISTER(1)(31 downto 0) <= x"01140301";
-iREGISTER(2)(31 downto 0) <= x"01140302";
-iREGISTER(3)(31 downto 0) <= x"01140303";
-iREGISTER(4)(31 downto 0) <= x"01140314";
-iREGISTER(5)(31 downto 0) <= x"10000BE5";
-iREGISTER(6)(31 downto 0) <= x"044E02E6";
-iREGISTER(7)(31 downto 0) <= x"BD913DB7";
-iREGISTER(8)(31 downto 0) <= x"20009D98";
+--iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
+--iREGISTER(1)(31 downto 0) <= x"01140301";
+--iREGISTER(2)(31 downto 0) <= x"01140302";
+--iREGISTER(3)(31 downto 0) <= x"01140303";
+--iREGISTER(4)(31 downto 0) <= x"01140314";
+--iREGISTER(5)(31 downto 0) <= x"10000BE5";
+--iREGISTER(6)(31 downto 0) <= x"044E02E6";
+--iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+--iREGISTER(8)(31 downto 0) <= x"20009D98";
 
 --										--36 MHz using PLL
 --iREGISTER(0)(31 downto 0) <= x"010E0320";
@@ -142,17 +145,79 @@ iREGISTER(8)(31 downto 0) <= x"20009D98";
 --iREGISTER(6)(31 downto 0) <= x"044E04B6";
 --iREGISTER(7)(31 downto 0) <= x"BD91BBB7";
 --iREGISTER(8)(31 downto 0) <= x"20009D98";
-
 --										--35 MHz using PLL
---iREGISTER(0)(31 downto 0) <= x"011C0320";
---iREGISTER(1)(31 downto 0) <= x"011C0301";
---iREGISTER(2)(31 downto 0) <= x"011C0302";
---iREGISTER(3)(31 downto 0) <= x"011C0303";
---iREGISTER(4)(31 downto 0) <= x"011C0314";
---iREGISTER(5)(31 downto 0) <= x"10040BE5";
---iREGISTER(6)(31 downto 0) <= x"044E0C76";
---iREGISTER(7)(31 downto 0) <= x"BD91BBB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
+--		iREGISTER(0)(31 downto 0) <= x"011C0320";
+--		iREGISTER(1)(31 downto 0) <= x"011C0301";
+--		iREGISTER(2)(31 downto 0) <= x"011C0302";
+--		iREGISTER(3)(31 downto 0) <= x"011C0303";
+--		iREGISTER(4)(31 downto 0) <= x"011C0314";
+--		iREGISTER(5)(31 downto 0) <= x"10040BE5";
+--		iREGISTER(6)(31 downto 0) <= x"044E0C76";
+--		iREGISTER(7)(31 downto 0) <= x"BD91BBB7";
+--		iREGISTER(8)(31 downto 0) <= x"20009D98";
+--32 MHz and 40 on channel 5
+--		iREGISTER(0)(31 downto 0) <= x"01160320";
+--		iREGISTER(1)(31 downto 0) <= x"01160301";
+--		iREGISTER(2)(31 downto 0) <= x"01160302";
+--		iREGISTER(3)(31 downto 0) <= x"01160303";
+--		iREGISTER(4)(31 downto 0) <= x"01140314";
+--		iREGISTER(5)(31 downto 0) <= x"10000BE5";
+--		iREGISTER(6)(31 downto 0) <= x"042E02E6";
+--		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
+--		iREGISTER(8)(31 downto 0) <= x"20009D98";
+process(xPLL_MODE)
+begin
+	case xPLL_MODE is
+		when "10" =>
+      --24 MHz and 40 on channel 5
+		iREGISTER(0)(31 downto 0) <= x"011E0320";
+		iREGISTER(1)(31 downto 0) <= x"011E0301";
+		iREGISTER(2)(31 downto 0) <= x"011E0302";
+		iREGISTER(3)(31 downto 0) <= x"011E0323";
+		iREGISTER(4)(31 downto 0) <= x"01140314";
+		iREGISTER(5)(31 downto 0) <= x"FC000BE5";
+		iREGISTER(6)(31 downto 0) <= x"042E02E6";
+		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
+		iREGISTER(8)(31 downto 0) <= x"20009D98";
+		
+		when "01" =>
+      --32 MHz and 40 on channel 5
+		iREGISTER(0)(31 downto 0) <= x"01160320";
+		iREGISTER(1)(31 downto 0) <= x"01160301";
+		iREGISTER(2)(31 downto 0) <= x"01160302";
+		iREGISTER(3)(31 downto 0) <= x"01160303";
+		iREGISTER(4)(31 downto 0) <= x"01140314";
+		iREGISTER(5)(31 downto 0) <= x"10000BE5";
+		iREGISTER(6)(31 downto 0) <= x"042E02E6";
+		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
+		iREGISTER(8)(31 downto 0) <= x"20009D98";
+		
+		
+		when "00" =>
+		iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
+		iREGISTER(1)(31 downto 0) <= x"01140301";
+		iREGISTER(2)(31 downto 0) <= x"01140302";
+		iREGISTER(3)(31 downto 0) <= x"01140303";
+		iREGISTER(4)(31 downto 0) <= x"01140314";
+		iREGISTER(5)(31 downto 0) <= x"10000BE5";
+		iREGISTER(6)(31 downto 0) <= x"044E02E6";
+		iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+		iREGISTER(8)(31 downto 0) <= x"20009D98";	
+
+		
+		when others =>
+		iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
+		iREGISTER(1)(31 downto 0) <= x"01140301";
+		iREGISTER(2)(31 downto 0) <= x"01140302";
+		iREGISTER(3)(31 downto 0) <= x"01140303";
+		iREGISTER(4)(31 downto 0) <= x"01140314";
+		iREGISTER(5)(31 downto 0) <= x"10000BE5";
+		iREGISTER(6)(31 downto 0) <= x"044E02E6";
+		iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+		iREGISTER(8)(31 downto 0) <= x"20009D98";	
+
+	end case;
+end process;
 
 --										--30 MHz using PLL
 --iREGISTER(0)(31 downto 0) <= x"011C0320";
@@ -261,6 +326,7 @@ iREGISTER(8)(31 downto 0) <= x"20009D98";
 			PLL_RST 	<= '1';
 			RAM_SEL <= x"F";
 			STATE	<= PWR_UP;			
+			--xPLL_CONFIG_OUT <= xPLL_MODE;
 		elsif falling_edge(xCLK) and xCLR_ALL = '0' then
 --------------------------------------------------------------------------------			
 			case STATE is

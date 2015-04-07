@@ -51,6 +51,7 @@ entity lvds_com is
 			xSELF_TRIG_RATE_COUNT 	: in rate_count_array;
 				
 			xSYSTEM_IS_CLEAR			: in	std_logic;
+			xPULL_RAM_DATA				: in  std_logic;
 			
 			xTX_LVDS_DATA		: out		std_logic_vector(1 downto 0);
 
@@ -107,6 +108,7 @@ signal INTERNAL_DONE				: std_logic_vector(4 downto 0) := "00000";
 signal internal_done_bit		: std_logic;
 signal mess_busy					: std_logic := '0';
 signal SYSTEM_TIME_COUNTER		: std_logic_vector(48 downto 0) := (others=>'0');
+signal SYSTEM_START				: std_logic;
 
 
 component lvds_tranceivers
@@ -341,12 +343,21 @@ begin
 	end if;
 end process;
 
+process (xCLR_ALL, xPULL_RAM_DATA, DONE)
+begin
+	if xCLR_ALL = '1' or DONE = '1' or xSYSTEM_IS_CLEAR = '1' then
+		SYSTEM_START <= '0';
+	elsif rising_edge(xPULL_RAM_DATA) then
+		SYSTEM_START <= '1';
+	end if;
+end process;
+
 --DONE <= internal_done_bit;
-process(xCLK_40MHz, START, xCLR_ALL, PSEC_MASK)				
+process(xCLK_40MHz, START, xCLR_ALL, PSEC_MASK, xSYSTEM_IS_CLEAR )				
 variable i : integer range 50 downto 0;	
 variable mask_count : integer range 4 downto 0 := 0;	
 	begin
-	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0'  then
+	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0' then
 		RADDR 				<= "00000000000000";--(others=>'0');
 		GOOD_DATA 			<= (others=>'0');
 		RAM_CNT				<= (others=>'0');
@@ -357,7 +368,7 @@ variable mask_count : integer range 4 downto 0 := 0;
 		mask_count 			:= 0;
 		LVDS_MESS_STATE 	<= MESS_START;
 
-	elsif falling_edge(xCLK_40MHz) and START = '1' then		
+	elsif falling_edge(xCLK_40MHz) and (START = '1'  or SYSTEM_START = '1') then		
 			case LVDS_MESS_STATE is
 				
 				when MESS_START =>	

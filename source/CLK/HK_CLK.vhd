@@ -40,6 +40,7 @@ architecture Behavioral of HK_CLK is
 	type STATE_TYPE_1kHz is (	HI_1kHz,LO_1kHz);								
 	signal STATE_1kHz  	: STATE_TYPE_1kHz;
 	signal CLK_1kHz			: std_logic;
+	
 --------------------------------------------------------------------------------	
 begin 
 --------------------------------------------------------------------------------

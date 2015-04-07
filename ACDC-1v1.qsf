@@ -835,7 +835,7 @@ set_global_assignment -name SEARCH_PATH Digital_Card/source/
 
 set_global_assignment -name CYCLONEIII_CONFIGURATION_DEVICE EPCS64
 set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE tap_lvds_com.stp
+set_global_assignment -name USE_SIGNALTAP_FILE tap_self_trig_1_fast_clk.stp
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
@@ -866,7 +866,6 @@ set_global_assignment -name VHDL_FILE source/CLK/progreset.vhd
 set_global_assignment -name VHDL_FILE source/CLK/PLL_CONFIG.vhd
 set_global_assignment -name VHDL_FILE source/CLK/HK_CLK.vhd
 set_global_assignment -name BDF_FILE source/CLK/CLKmain.bdf
-set_global_assignment -name VHDL_FILE source/CLK/altpll1.vhd
 set_global_assignment -name VHDL_FILE source/CLK/altpll0.vhd
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/Wilkinson_Feedback_Loop.vhd
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/RAM2port.vhd
@@ -879,5 +878,13 @@ set_global_assignment -name VHDL_FILE source/AC_CONTROL/dac_main_daisychain.vhd
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/AC_control.vhd
 set_global_assignment -name VHDL_FILE source/Definition_Pool.vhd
 set_global_assignment -name BDF_FILE source/ACDC_top_level.bdf
-set_global_assignment -name VHDL_FILE source/AC_CONTROL/psec4_trigger_GLOBAL_dualclockedge.vhd
+set_global_assignment -name SIGNALTAP_FILE tap_scaler_mode.stp
+set_global_assignment -name SIGNALTAP_FILE tap_self_trig.stp
+set_global_assignment -name SIGNALTAP_FILE tap_self_trig_1.stp
+set_global_assignment -name SIGNALTAP_FILE tap_self_trig_1_fast_clk.stp
+set_global_assignment -name QIP_FILE altpll3.qip
+set_global_assignment -name VHDL_FILE source/CLK/PLL_MUX.vhd
+set_global_assignment -name QIP_FILE altclkctrl0.qip
+set_global_assignment -name BDF_FILE source/CLK/CLKmain_attempt_at_dual_PLL.bdf
+set_global_assignment -name BDF_FILE source/CLK/CLKmain_working.bdf
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

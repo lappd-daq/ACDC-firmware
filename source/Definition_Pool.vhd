@@ -6,7 +6,7 @@ use ieee.std_logic_unsigned.all;
 
 package Definition_Pool is
 
-constant firmware_version : std_logic_vector := x"0012";
+constant firmware_version : std_logic_vector := x"0016";
 
 ---------------------------------------------------------------
 --define instructions

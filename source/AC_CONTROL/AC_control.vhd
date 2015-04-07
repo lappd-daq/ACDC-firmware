@@ -172,18 +172,23 @@ entity AC_CONTROL is
 		xSET_DLL_VDD4				:	in	std_logic_vector(11 downto 0);	--...end
 
 		xSELF_TRIGGER_MASK		: in 	std_logic_vector(29 downto 0);
-		xSELF_TRIGGER_SETTING	: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
+		xOPENSPACE	: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
 		
 		xCLK_10Hz				: in	std_logic;
 		xTRIG_VALID				: in 	std_logic;
 		xDONE_SIGNAL_FROM_SYS: in	std_logic;
 		
+		xSELF_TRIGGER_SETTING_0 : in std_logic_vector(10 downto 0);
+		xSELF_TRIGGER_SETTING_1 : in std_logic_vector(10 downto 0);
+
+		xRESET_TIMESTAMPS		: in	std_logic;
+
 		MONITOR_PSEC0	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC1	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC2	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC3	:	out	std_logic_vector(23 downto 0);
 		MONITOR_PSEC4	:	out	std_logic_vector(23 downto 0);
-		
+						
 		xLATCHED_SELFTRIG_CHANNEL	: out SelfTrig_array;
 		xSAMPLE_BIN_LOCATION			: out	SampleBin_array;
 		
@@ -194,7 +199,8 @@ entity AC_CONTROL is
 		xSAMPLE_INFO					: out Word_array;
 		xSELF_TRIG_RATES				: out rate_count_array;
 		xRATE_ONLY						: out std_logic;
-		xDIG_TRIG						:  out	std_logic);
+		xDIG_TRIG						:  out	std_logic;
+		xTRIG_SIGNAL_REG				: out	std_logic_vector(2 downto 0));
 		
 end AC_CONTROL;
 
@@ -309,8 +315,9 @@ component psec4_trigger_GLOBAL
 			xSELFTRIG_4 			: in	std_logic_vector(5 downto 0); --internal trig sgnl
 			
 			xSELF_TRIGGER_MASK	: in 	std_logic_vector(29 downto 0);
-			xSELF_TRIGGER_SETTING: in	std_logic_vector(11 downto 0); --open dataspace for config of this block
-
+			xSELF_TRIGGER_SETTING_0: in	std_logic_vector(10 downto 0); --open dataspace for config of this block
+			xSELF_TRIGGER_SETTING_1: in	std_logic_vector(10 downto 0); --open dataspace for config of this block
+			
 			xRESET_TRIG_FLAG		: in	std_logic;
 			
 			xDLL_RESET				: in	std_logic;
@@ -320,6 +327,8 @@ component psec4_trigger_GLOBAL
 			
 			xTRIGGER_OUT			: out	std_logic;
 			xSTART_ADC				: out std_logic;
+			xTRIG_SIGNAL_REG		: out	std_logic_vector(2 downto 0);
+			xRESET_TIMESTAMPS		: in	std_logic;
 
 			xSELFTRIG_CLEAR		: out	std_logic;
 			
@@ -558,7 +567,7 @@ begin
 			xRAMR_EN			=>		xRAMR_EN(i),
 			xRD_ADDRESS		=>		xRD_ADDRESS,
 			xRAWDATA			=>		RAWDATA(i),
-			xSELF_TRIG_EN  =>    xSELF_TRIGGER_SETTING(0),
+			xSELF_TRIG_EN  =>    xSELF_TRIGGER_SETTING_0(0),
 			xTRIG_VALID	   =>		xTRIG_VALID,
 			xDONE_FROM_SYS =>    xDONE_SIGNAL_FROM_SYS,
 
@@ -589,17 +598,20 @@ begin
 			xSELFTRIG_4			=> SELFTRIG(4),
 			
 			xSELF_TRIGGER_MASK	=>  xSELF_TRIGGER_MASK,
-			xSELF_TRIGGER_SETTING=>  xSELF_TRIGGER_SETTING,
-			
+			xSELF_TRIGGER_SETTING_0=>xSELF_TRIGGER_SETTING_0,
+			xSELF_TRIGGER_SETTING_1=>xSELF_TRIGGER_SETTING_1,
 			xRESET_TRIG_FLAG		=> xRESET_SELF_TRIG,
 			
 			xDLL_RESET			=>	DLL_RESET(0),
 			xPLL_LOCK			=>	xPLL_LOCK,
 			xTRIG_VALID   		=> xTRIG_VALID,
 			xDONE_FROM_SYS		=> xDONE_SIGNAL_FROM_SYS,
-			
+			xRESET_TIMESTAMPS	=> xRESET_TIMESTAMPS,
+		
 			xTRIGGER_OUT		=> trigger_flag,
 			xSTART_ADC			=>  start_adc_flag,
+			xTRIG_SIGNAL_REG  => xTRIG_SIGNAL_REG,
+
 			
 			xSELFTRIG_CLEAR	=>  self_trigger_clear_flag,
 			
