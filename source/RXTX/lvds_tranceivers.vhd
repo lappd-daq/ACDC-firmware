@@ -61,14 +61,14 @@ BEGIN
 
 
 
-b2v_inst : altlvds_tx0
+lvds_tx : altlvds_tx0
 PORT MAP(tx_inclock => TX_CLK,
 		 tx_in => TX_DATA,
 		 tx_outclock => TX_OUTCLK,
 		 tx_out => TX_LVDS_DATA);
 
 
-b2v_inst1 : altlvds_rx0
+lvds_rx : altlvds_rx0
 PORT MAP(rx_data_align => RX_ALIGN,
 		 rx_inclock => RX_CLK,
 		 rx_in(0) => RX_LVDS_DATA,

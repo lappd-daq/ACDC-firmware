@@ -42,7 +42,7 @@ entity lvds_com is
 			
 				
 			xCLK_40MHz			: in		std_logic;
-			 
+			xRX_LVDS_CLK	 	: in		std_logic;
 			xRX_LVDS_DATA	 	: in		std_logic;
 			xINSTRUCTION		: out		std_logic_vector(31 downto 0);
 			xINSTRUCT_READY	: out		std_logic;
@@ -59,6 +59,7 @@ entity lvds_com is
 			xPULL_RAM_DATA				: in  std_logic;
 			
 			xTX_LVDS_DATA		: out		std_logic_vector(1 downto 0);
+			xTX_LVDS_CLK		: out		std_logic;
 
 			xRADDR				: out  	std_logic_vector (RAM_ADR_SIZE-1 downto 0);
 			xRAM_READ_EN		: out		std_logic_vector(4 downto 0);
@@ -522,10 +523,10 @@ port map(
 			TX_CLK			=>		xCLK_40MHz,
 			RX_ALIGN			=>		RX_ALIGN_BITSLIP,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
-			RX_CLK			=>		xCLK_40MHz,
+			RX_CLK			=>		xRX_LVDS_CLK,
 			TX_LVDS_DATA	=>		xTX_LVDS_DATA,
 			RX_DATA			=>		RX_DATA,
-			TX_OUTCLK		=>		open,
+			TX_OUTCLK		=>		xTX_LVDS_CLK,
 			RX_OUTCLK		=>		RX_OUTCLK);	
 
 end Behavioral;
