@@ -26,8 +26,8 @@ applicable agreement for further details.
 	(port
 		(pt 0 48)
 		(input)
-		(text "tx_in[15..0]" (rect 0 0 62 14)(font "Arial" (font_size 8)))
-		(text "tx_in[15..0]" (rect 4 34 55 47)(font "Arial" (font_size 8)))
+		(text "tx_in[19..0]" (rect 0 0 62 14)(font "Arial" (font_size 8)))
+		(text "tx_in[19..0]" (rect 4 34 55 47)(font "Arial" (font_size 8)))
 		(line (pt 0 48)(pt 64 48)(line_width 3))
 	)
 	(port

@@ -127,7 +127,7 @@ end
 else if (METHOD == 1) begin
 	wire rdout_x,rdout_y;
 	
-	stratixii_lcell_comb rdoutx (
+	arriav_lcell_comb rdoutx (
 		  .dataa (!B),.datab (!D),.datac (!E),.datad (!A),.datae (!C),.dataf (!K),.datag(1'b1),
 		  .cin(1'b1),.sharein(1'b0),.sumout(),.cout(),.shareout(),
 		  .combout(rdout_x));
@@ -135,7 +135,7 @@ else if (METHOD == 1) begin
 		defparam rdoutx .shared_arith = "off";
 		defparam rdoutx .extended_lut = "off";
 	
-	stratixii_lcell_comb rdouty (
+	arriav_lcell_comb rdouty (
 		  .dataa (!H),.datab (!ein_rd),.datac (!F),.datad (!G),.datae (!rdout_x),.dataf (!rdout_x),.datag(1'b1),
 		  .cin(1'b1),.sharein(1'b0),.sumout(),.cout(),.shareout(),
 		  .combout(rdout_y));
@@ -326,7 +326,7 @@ else if (METHOD == 1) begin
 
 	wire f0,f1,f2,f3,f4;
 
-	stratixii_lcell_comb f0_I (
+	arriav_lcell_comb f0_I (
 		.dataa(!ein_dat[3]),
 		.datab(!ein_dat[4]),
 		.datac(!ein_dat[1]),
@@ -339,7 +339,7 @@ else if (METHOD == 1) begin
 	defparam f0_I .extended_lut = "off";
 	defparam f0_I .lut_mask = 64'h0224244002242440;
 
-	stratixii_lcell_comb f1_I (
+	arriav_lcell_comb f1_I (
 		.dataa(!ein_rd),
 		.datab(!ein_dat[7]),
 		.datac(!ein_dat[6]),
@@ -352,7 +352,7 @@ else if (METHOD == 1) begin
 	defparam f1_I .extended_lut = "off";
 	defparam f1_I .lut_mask = 64'h0F03AA590F03AA59;
 
-	stratixii_lcell_comb f2_I (
+	arriav_lcell_comb f2_I (
 		.dataa(!ein_rd),
 		.datab(!ein_dat[7]),
 		.datac(!ein_dat[6]),
@@ -365,7 +365,7 @@ else if (METHOD == 1) begin
 	defparam f2_I .extended_lut = "off";
 	defparam f2_I .lut_mask = 64'h00F355A600F355A6;
 
-	stratixii_lcell_comb f3_I (
+	arriav_lcell_comb f3_I (
 		.dataa(!f4 ),
 		.datab(!f0 ),
 		.datac(!ein_rd),
@@ -378,7 +378,7 @@ else if (METHOD == 1) begin
 	defparam f3_I .extended_lut = "off";
 	defparam f3_I .lut_mask = 64'h7800FF597800FF59;
 
-	stratixii_lcell_comb f4_I (
+	arriav_lcell_comb f4_I (
 		.dataa(!ein_dat[3]),
 		.datab(!ein_dat[4]),
 		.datac(!ein_dat[1]),
@@ -398,7 +398,7 @@ else if (METHOD == 1) begin
 
 	wire j0,j1,j2,j3,j4,j5;
 
-	stratixii_lcell_comb j0_I (
+	arriav_lcell_comb j0_I (
 		.dataa(!ein_dat[1]),
 		.datab(!ein_dat[3]),
 		.datac(!ein_dat[4]),
@@ -411,7 +411,7 @@ else if (METHOD == 1) begin
 	defparam j0_I .extended_lut = "off";
 	defparam j0_I .lut_mask = 64'h117676E8117676E8;
 
-	stratixii_lcell_comb j1_I (
+	arriav_lcell_comb j1_I (
 		.dataa(!ein_dat[1]),
 		.datab(!ein_dat[3]),
 		.datac(!ein_dat[4]),
@@ -424,7 +424,7 @@ else if (METHOD == 1) begin
 	defparam j1_I .extended_lut = "off";
 	defparam j1_I .lut_mask = 64'h0418182004181820;
 
-		stratixii_lcell_comb j2_I (
+		arriav_lcell_comb j2_I (
 		.dataa(!ein_rd),
 		.datab(!ein_dat[7]),
 		.datac(!ein_dat[5]),
@@ -437,7 +437,7 @@ else if (METHOD == 1) begin
 	defparam j2_I .extended_lut = "off";
 	defparam j2_I .lut_mask = 64'h5339A6665339A666;
 
-	stratixii_lcell_comb j3_I (
+	arriav_lcell_comb j3_I (
 		.datac(!ein_dat[5]),
 		.datad(!ein_dat[6]),
 		.datae(!kin_ena),
@@ -448,7 +448,7 @@ else if (METHOD == 1) begin
 	defparam j3_I .extended_lut = "off";
 	defparam j3_I .lut_mask = 64'hF00F0000F00F0000;
 
-	stratixii_lcell_comb j4_I (
+	arriav_lcell_comb j4_I (
 		.datab(!ein_dat[7]),
 		.datac(!ein_dat[5]),
 		.datad(!ein_dat[6]),
@@ -460,7 +460,7 @@ else if (METHOD == 1) begin
 	defparam j4_I .extended_lut = "off";
 	defparam j4_I .lut_mask = 64'h0003000000030000;
 
-	stratixii_lcell_comb j5_I (
+	arriav_lcell_comb j5_I (
 		.dataa(!j0 ),
 		.datab(!j1 ),
 		.datac(!j2 ),

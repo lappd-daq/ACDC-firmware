@@ -45,7 +45,7 @@ ENTITY altlvds_rx0 IS
 		rx_data_align		: IN STD_LOGIC ;
 		rx_in		: IN STD_LOGIC_VECTOR (0 DOWNTO 0);
 		rx_inclock		: IN STD_LOGIC ;
-		rx_out		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+		rx_out		: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 		rx_outclock		: OUT STD_LOGIC 
 	);
 END altlvds_rx0;
@@ -53,7 +53,7 @@ END altlvds_rx0;
 
 ARCHITECTURE SYN OF altlvds_rx0 IS
 
-	SIGNAL sub_wire0	: STD_LOGIC_VECTOR (7 DOWNTO 0);
+	SIGNAL sub_wire0	: STD_LOGIC_VECTOR (9 DOWNTO 0);
 	SIGNAL sub_wire1	: STD_LOGIC ;
 
 
@@ -112,13 +112,13 @@ ARCHITECTURE SYN OF altlvds_rx0 IS
 			rx_in	: IN STD_LOGIC_VECTOR (0 DOWNTO 0);
 			rx_inclock	: IN STD_LOGIC ;
 			rx_data_align	: IN STD_LOGIC ;
-			rx_out	: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+			rx_out	: OUT STD_LOGIC_VECTOR (9 DOWNTO 0);
 			rx_outclock	: OUT STD_LOGIC 
 	);
 	END COMPONENT;
 
 BEGIN
-	rx_out    <= sub_wire0(7 DOWNTO 0);
+	rx_out    <= sub_wire0(9 DOWNTO 0);
 	rx_outclock    <= sub_wire1;
 
 	ALTLVDS_RX_component : ALTLVDS_RX
@@ -127,8 +127,8 @@ BEGIN
 		cds_mode => "UNUSED",
 		common_rx_tx_pll => "ON",
 		data_align_rollover => 4,
-		data_rate => "320.0 Mbps",
-		deserialization_factor => 8,
+		data_rate => "400.0 Mbps",
+		deserialization_factor => 10,
 		dpa_initial_phase_value => 0,
 		dpll_lock_count => 0,
 		dpll_lock_window => 0,
@@ -145,7 +145,7 @@ BEGIN
 		inclock_data_alignment => "EDGE_ALIGNED",
 		inclock_period => 25000,
 		inclock_phase_shift => 0,
-		input_data_rate => 320,
+		input_data_rate => 400,
 		intended_device_family => "Cyclone IV GX",
 		lose_lock_on_one_change => "UNUSED",
 		lpm_hint => "CBX_MODULE_PREFIX=altlvds_rx0",
@@ -190,8 +190,8 @@ END SYN;
 -- Retrieval info: PRIVATE: Bitslip NUMERIC "0"
 -- Retrieval info: PRIVATE: Clock_Choices STRING "tx_coreclock"
 -- Retrieval info: PRIVATE: Clock_Mode NUMERIC "0"
--- Retrieval info: PRIVATE: Data_rate STRING "320.0"
--- Retrieval info: PRIVATE: Deser_Factor NUMERIC "8"
+-- Retrieval info: PRIVATE: Data_rate STRING "400.0"
+-- Retrieval info: PRIVATE: Deser_Factor NUMERIC "10"
 -- Retrieval info: PRIVATE: Dpll_Lock_Count NUMERIC "0"
 -- Retrieval info: PRIVATE: Dpll_Lock_Window NUMERIC "0"
 -- Retrieval info: PRIVATE: Enable_DPA_Mode STRING "OFF"
@@ -221,8 +221,8 @@ END SYN;
 -- Retrieval info: CONSTANT: COMMON_RX_TX_PLL STRING "ON"
 -- Retrieval info: CONSTANT: clk_src_is_pll STRING "off"
 -- Retrieval info: CONSTANT: DATA_ALIGN_ROLLOVER NUMERIC "4"
--- Retrieval info: CONSTANT: DATA_RATE STRING "320.0 Mbps"
--- Retrieval info: CONSTANT: DESERIALIZATION_FACTOR NUMERIC "8"
+-- Retrieval info: CONSTANT: DATA_RATE STRING "400.0 Mbps"
+-- Retrieval info: CONSTANT: DESERIALIZATION_FACTOR NUMERIC "10"
 -- Retrieval info: CONSTANT: DPA_INITIAL_PHASE_VALUE NUMERIC "0"
 -- Retrieval info: CONSTANT: DPLL_LOCK_COUNT NUMERIC "0"
 -- Retrieval info: CONSTANT: DPLL_LOCK_WINDOW NUMERIC "0"
@@ -239,7 +239,7 @@ END SYN;
 -- Retrieval info: CONSTANT: INCLOCK_DATA_ALIGNMENT STRING "EDGE_ALIGNED"
 -- Retrieval info: CONSTANT: INCLOCK_PERIOD NUMERIC "25000"
 -- Retrieval info: CONSTANT: INCLOCK_PHASE_SHIFT NUMERIC "0"
--- Retrieval info: CONSTANT: INPUT_DATA_RATE NUMERIC "320"
+-- Retrieval info: CONSTANT: INPUT_DATA_RATE NUMERIC "400"
 -- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone IV GX"
 -- Retrieval info: CONSTANT: LOSE_LOCK_ON_ONE_CHANGE STRING "UNUSED"
 -- Retrieval info: CONSTANT: LPM_HINT STRING "UNUSED"
@@ -269,8 +269,8 @@ END SYN;
 -- Retrieval info: CONNECT: @rx_in 0 0 1 0 rx_in 0 0 1 0
 -- Retrieval info: USED_PORT: rx_inclock 0 0 0 0 INPUT NODEFVAL "rx_inclock"
 -- Retrieval info: CONNECT: @rx_inclock 0 0 0 0 rx_inclock 0 0 0 0
--- Retrieval info: USED_PORT: rx_out 0 0 8 0 OUTPUT NODEFVAL "rx_out[7..0]"
--- Retrieval info: CONNECT: rx_out 0 0 8 0 @rx_out 0 0 8 0
+-- Retrieval info: USED_PORT: rx_out 0 0 10 0 OUTPUT NODEFVAL "rx_out[9..0]"
+-- Retrieval info: CONNECT: rx_out 0 0 10 0 @rx_out 0 0 10 0
 -- Retrieval info: USED_PORT: rx_outclock 0 0 0 0 OUTPUT NODEFVAL "rx_outclock"
 -- Retrieval info: CONNECT: rx_outclock 0 0 0 0 @rx_outclock 0 0 0 0
 -- Retrieval info: GEN_FILE: TYPE_NORMAL altlvds_rx0.vhd TRUE FALSE

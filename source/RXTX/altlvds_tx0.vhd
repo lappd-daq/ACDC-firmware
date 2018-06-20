@@ -42,7 +42,7 @@ USE altera_mf.all;
 ENTITY altlvds_tx0 IS
 	PORT
 	(
-		tx_in		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+		tx_in		: IN STD_LOGIC_VECTOR (19 DOWNTO 0);
 		tx_inclock		: IN STD_LOGIC ;
 		tx_out		: OUT STD_LOGIC_VECTOR (1 DOWNTO 0);
 		tx_outclock		: OUT STD_LOGIC 
@@ -94,7 +94,7 @@ ARCHITECTURE SYN OF altlvds_tx0 IS
 		clk_src_is_pll		: STRING
 	);
 	PORT (
-			tx_in	: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+			tx_in	: IN STD_LOGIC_VECTOR (19 DOWNTO 0);
 			tx_inclock	: IN STD_LOGIC ;
 			tx_out	: OUT STD_LOGIC_VECTOR (1 DOWNTO 0);
 			tx_outclock	: OUT STD_LOGIC 
@@ -110,8 +110,8 @@ BEGIN
 		center_align_msb => "UNUSED",
 		common_rx_tx_pll => "ON",
 		coreclock_divide_by => 2,
-		data_rate => "320.0 Mbps",
-		deserialization_factor => 8,
+		data_rate => "400.0 Mbps",
+		deserialization_factor => 10,
 		differential_drive => 0,
 		enable_clock_pin_mode => "UNUSED",
 		implement_in_les => "ON",
@@ -125,12 +125,12 @@ BEGIN
 		multi_clock => "OFF",
 		number_of_channels => 2,
 		outclock_alignment => "EDGE_ALIGNED",
-		outclock_divide_by => 4,
+		outclock_divide_by => 10,
 		outclock_duty_cycle => 50,
-		outclock_multiply_by => 1,
+		outclock_multiply_by => 2,
 		outclock_phase_shift => 0,
 		outclock_resource => "AUTO",
-		output_data_rate => 320,
+		output_data_rate => 400,
 		pll_compensation_mode => "AUTO",
 		pll_self_reset_on_loss_lock => "OFF",
 		preemphasis_setting => 0,
@@ -159,12 +159,12 @@ END SYN;
 -- Retrieval info: PRIVATE: CNX_CLOCK_CHOICES STRING "tx_inclock"
 -- Retrieval info: PRIVATE: CNX_CLOCK_MODE NUMERIC "0"
 -- Retrieval info: PRIVATE: CNX_COMMON_PLL NUMERIC "1"
--- Retrieval info: PRIVATE: CNX_DATA_RATE STRING "320.0"
--- Retrieval info: PRIVATE: CNX_DESER_FACTOR NUMERIC "8"
+-- Retrieval info: PRIVATE: CNX_DATA_RATE STRING "400.0"
+-- Retrieval info: PRIVATE: CNX_DESER_FACTOR NUMERIC "10"
 -- Retrieval info: PRIVATE: CNX_EXT_PLL STRING "OFF"
 -- Retrieval info: PRIVATE: CNX_LE_SERDES STRING "ON"
 -- Retrieval info: PRIVATE: CNX_NUM_CHANNEL NUMERIC "2"
--- Retrieval info: PRIVATE: CNX_OUTCLOCK_DIVIDE_BY NUMERIC "4"
+-- Retrieval info: PRIVATE: CNX_OUTCLOCK_DIVIDE_BY NUMERIC "10"
 -- Retrieval info: PRIVATE: CNX_PLL_ARESET NUMERIC "0"
 -- Retrieval info: PRIVATE: CNX_PLL_FREQ STRING "40.00"
 -- Retrieval info: PRIVATE: CNX_PLL_PERIOD STRING "25.000"
@@ -183,8 +183,8 @@ END SYN;
 -- Retrieval info: CONSTANT: COMMON_RX_TX_PLL STRING "ON"
 -- Retrieval info: CONSTANT: CORECLOCK_DIVIDE_BY NUMERIC "2"
 -- Retrieval info: CONSTANT: clk_src_is_pll STRING "off"
--- Retrieval info: CONSTANT: DATA_RATE STRING "320.0 Mbps"
--- Retrieval info: CONSTANT: DESERIALIZATION_FACTOR NUMERIC "8"
+-- Retrieval info: CONSTANT: DATA_RATE STRING "400.0 Mbps"
+-- Retrieval info: CONSTANT: DESERIALIZATION_FACTOR NUMERIC "10"
 -- Retrieval info: CONSTANT: DIFFERENTIAL_DRIVE NUMERIC "0"
 -- Retrieval info: CONSTANT: ENABLE_CLOCK_PIN_MODE STRING "UNUSED"
 -- Retrieval info: CONSTANT: IMPLEMENT_IN_LES STRING "ON"
@@ -198,12 +198,12 @@ END SYN;
 -- Retrieval info: CONSTANT: MULTI_CLOCK STRING "OFF"
 -- Retrieval info: CONSTANT: NUMBER_OF_CHANNELS NUMERIC "2"
 -- Retrieval info: CONSTANT: OUTCLOCK_ALIGNMENT STRING "EDGE_ALIGNED"
--- Retrieval info: CONSTANT: OUTCLOCK_DIVIDE_BY NUMERIC "4"
+-- Retrieval info: CONSTANT: OUTCLOCK_DIVIDE_BY NUMERIC "10"
 -- Retrieval info: CONSTANT: OUTCLOCK_DUTY_CYCLE NUMERIC "50"
--- Retrieval info: CONSTANT: OUTCLOCK_MULTIPLY_BY NUMERIC "1"
+-- Retrieval info: CONSTANT: OUTCLOCK_MULTIPLY_BY NUMERIC "2"
 -- Retrieval info: CONSTANT: OUTCLOCK_PHASE_SHIFT NUMERIC "0"
 -- Retrieval info: CONSTANT: OUTCLOCK_RESOURCE STRING "AUTO"
--- Retrieval info: CONSTANT: OUTPUT_DATA_RATE NUMERIC "320"
+-- Retrieval info: CONSTANT: OUTPUT_DATA_RATE NUMERIC "400"
 -- Retrieval info: CONSTANT: PLL_COMPENSATION_MODE STRING "AUTO"
 -- Retrieval info: CONSTANT: PLL_SELF_RESET_ON_LOSS_LOCK STRING "OFF"
 -- Retrieval info: CONSTANT: PREEMPHASIS_SETTING NUMERIC "0"
@@ -212,8 +212,8 @@ END SYN;
 -- Retrieval info: CONSTANT: USE_EXTERNAL_PLL STRING "OFF"
 -- Retrieval info: CONSTANT: USE_NO_PHASE_SHIFT STRING "ON"
 -- Retrieval info: CONSTANT: VOD_SETTING NUMERIC "0"
--- Retrieval info: USED_PORT: tx_in 0 0 16 0 INPUT NODEFVAL "tx_in[15..0]"
--- Retrieval info: CONNECT: @tx_in 0 0 16 0 tx_in 0 0 16 0
+-- Retrieval info: USED_PORT: tx_in 0 0 20 0 INPUT NODEFVAL "tx_in[19..0]"
+-- Retrieval info: CONNECT: @tx_in 0 0 20 0 tx_in 0 0 20 0
 -- Retrieval info: USED_PORT: tx_inclock 0 0 0 0 INPUT NODEFVAL "tx_inclock"
 -- Retrieval info: CONNECT: @tx_inclock 0 0 0 0 tx_inclock 0 0 0 0
 -- Retrieval info: USED_PORT: tx_out 0 0 2 0 OUTPUT NODEFVAL "tx_out[1..0]"

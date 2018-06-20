@@ -310,7 +310,7 @@ generate
 		wire rd2_err_lc = rd2_err /* synthesis keep */;
 
 		wire kerr6,kerr7,kerr8,kerr9,kerr_remainder;
-		stratixii_lcell_comb kerr6_I (
+		arriav_lcell_comb kerr6_I (
 			.datab(!din_dat[7]),
 			.datac(!din_dat[6]),
 			.datad(!din_dat[8]),
@@ -322,7 +322,7 @@ generate
 		defparam kerr6_I .extended_lut = "off";
 		defparam kerr6_I .lut_mask = 64'h0C0000300C000030;
 
-		stratixii_lcell_comb kerr7_I (
+		arriav_lcell_comb kerr7_I (
 			.dataa(!din_dat[3]),
 			.datab(!din_dat[7]),
 			.datac(!din_dat[6]),
@@ -335,7 +335,7 @@ generate
 		defparam kerr7_I .extended_lut = "off";
 		defparam kerr7_I .lut_mask = 64'h0002403000024030;
 
-		stratixii_lcell_comb kerr8_I (
+		arriav_lcell_comb kerr8_I (
 			.dataa(!din_dat[0]),
 			.datab(!din_dat[1]),
 			.datac(!din_dat[2]),
@@ -348,7 +348,7 @@ generate
 		defparam kerr8_I .extended_lut = "off";
 		defparam kerr8_I .lut_mask = 64'h6868960868689608;
 
-		stratixii_lcell_comb kerr9_I (
+		arriav_lcell_comb kerr9_I (
 			.dataa(!din_dat[0]),
 			.datab(!din_dat[1]),
 			.datac(!din_dat[2]),
@@ -361,7 +361,7 @@ generate
 		defparam kerr9_I .extended_lut = "off";
 		defparam kerr9_I .lut_mask = 64'h1001161E1001161E;
 
-		stratixii_lcell_comb kerr_rem_I (
+		arriav_lcell_comb kerr_rem_I (
 			.dataa(!din_dat[5]),
 			.datab(!kerr6 ),
 			.datac(!kerr7 ),

@@ -28,10 +28,10 @@ ENTITY lvds_tranceivers IS
 		RX_ALIGN :  IN  STD_LOGIC;
 		RX_LVDS_DATA :  IN  STD_LOGIC;
 		RX_CLK :  IN  STD_LOGIC;
-		TX_DATA :  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
+		TX_DATA :  IN  STD_LOGIC_VECTOR(19 DOWNTO 0);
 		TX_OUTCLK :  OUT  STD_LOGIC;
 		RX_OUTCLK :  OUT  STD_LOGIC;
-		RX_DATA :  OUT  STD_LOGIC_VECTOR(7 DOWNTO 0);
+		RX_DATA :  OUT  STD_LOGIC_VECTOR(9 DOWNTO 0);
 		TX_LVDS_DATA :  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
 END lvds_tranceivers;
@@ -40,7 +40,7 @@ ARCHITECTURE bdf_type OF lvds_tranceivers IS
 
 COMPONENT altlvds_tx0
 	PORT(tx_inclock : IN STD_LOGIC;
-		 tx_in : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+		 tx_in : IN STD_LOGIC_VECTOR(19 DOWNTO 0);
 		 tx_outclock : OUT STD_LOGIC;
 		 tx_out : OUT STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
@@ -51,7 +51,7 @@ COMPONENT altlvds_rx0
 		 rx_inclock : IN STD_LOGIC;
 		 rx_in : IN STD_LOGIC_VECTOR(0 TO 0);
 		 rx_outclock : OUT STD_LOGIC;
-		 rx_out : OUT STD_LOGIC_VECTOR(7 DOWNTO 0)
+		 rx_out : OUT STD_LOGIC_VECTOR(9 DOWNTO 0)
 	);
 END COMPONENT;
 

@@ -86,10 +86,16 @@ signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
 signal RX_ALIGN_BITSLIP			:	std_logic;
 signal RX_DATA						:	std_logic_vector(7 downto 0);
+signal RX_DATA10						:	std_logic_vector(9 downto 0);
 signal CHECK_WORD					:	std_logic_vector(7 downto 0);
 signal TX_DATA						: 	std_logic_vector(15 downto 0);
+signal TX_DATA10						: 	std_logic_vector(19 downto 0);
 signal ALIGN_SUCCESS				:  std_logic := '0';
 signal GOOD_DATA					:  std_logic_vector(15 downto 0);
+
+signal TX_RDcomb						: std_logic;
+signal TX_RDreg							: std_logic;
+signal RX_RDreg							: std_logic;
 
 signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
@@ -120,17 +126,55 @@ signal SYSTEM_START				: std_logic;
 
 component lvds_tranceivers
 	port (
-			TX_DATA			: in	std_logic_vector(15 downto 0);
+			TX_DATA			: in	std_logic_vector(19 downto 0);
 			TX_CLK			: in	std_logic;
 			RX_ALIGN			: in	std_logic;
 			RX_LVDS_DATA	: in	std_logic;
 			RX_CLK			: in	std_logic;
 			TX_LVDS_DATA	: out	std_logic_vector(1 downto 0);
-			RX_DATA			: out	std_logic_vector(7 downto 0);
+			RX_DATA			: out	std_logic_vector(9 downto 0);
 			TX_OUTCLK		: out	std_logic;
 			RX_OUTCLK		: out std_logic);
 end component;
- 
+
+-- 8b10b components
+
+COMPONENT encoder_8b10b
+	GENERIC ( METHOD : INTEGER := 1 );
+	PORT
+	(
+		clk		:	 IN STD_LOGIC;
+		rst		:	 IN STD_LOGIC;
+		kin_ena		:	 IN STD_LOGIC;		-- Data in is a special code, not all are legal.	
+		ein_ena		:	 IN STD_LOGIC;		-- Data (or code) input enable
+		ein_dat		:	 IN STD_LOGIC_VECTOR(7 DOWNTO 0);		-- 8b data in
+		ein_rd		:	 IN STD_LOGIC;		-- running disparity input
+		eout_val		:	 OUT STD_LOGIC;		-- data out is valid
+		eout_dat		:	 OUT STD_LOGIC_VECTOR(9 DOWNTO 0);		-- data out
+		eout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
+		eout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
+	);
+END COMPONENT;
+
+COMPONENT decoder_8b10b
+	GENERIC ( RDERR : INTEGER := 1; KERR : INTEGER := 1; METHOD : INTEGER := 1 );
+	PORT
+	(
+		clk		:	 IN STD_LOGIC;
+		rst		:	 IN STD_LOGIC;
+		din_ena		:	 IN STD_LOGIC;		-- 10b data ready
+		din_dat		:	 IN STD_LOGIC_VECTOR(9 DOWNTO 0);		-- 10b data input
+		din_rd		:	 IN STD_LOGIC;		-- running disparity input
+		dout_val		:	 OUT STD_LOGIC;		-- data out valid
+		dout_dat		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);		-- data out
+		dout_k		:	 OUT STD_LOGIC;		-- special code
+		dout_kerr		:	 OUT STD_LOGIC;		-- coding mistake detected
+		dout_rderr		:	 OUT STD_LOGIC;		-- running disparity mistake detected
+		dout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
+		dout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
+	);
+END COMPONENT;
+
 begin
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
@@ -155,6 +199,7 @@ begin
 		INSTRUCT_READY_REGISTERED 	<= INSTRUCT_READY_REGISTERED(1 downto 0)&INSTRUCT_READY;
 	end if;
 end process;
+
 process(xCLK_40MHz)
 begin
 	if rising_edge(xCLK_40MHz) and ready_flag = '1' then
@@ -516,16 +561,64 @@ variable mask_count : integer range 4 downto 0 := 0;
 			end case;
 		end if;
 end process;		
-		
+
+
+tx_enc1 : encoder_8b10b
+	GENERIC MAP( METHOD => 1 )
+	PORT MAP(
+		clk => xCLK_40MHz,
+		rst => xCLR_ALL,
+		kin_ena => '0',		-- Data in is a special code, not all are legal.	
+		ein_ena => '1',		-- Data (or code) input enable
+		ein_dat => TX_DATA(7 downto 0),		-- 8b data in
+		ein_rd => TX_RDreg,		-- running disparity input
+		eout_val => open,		-- data out is valid
+		eout_dat => TX_DATA10(9 downto 0),		-- data out
+		eout_rdcomb => TX_RDcomb,		-- running disparity output (comb)
+		eout_rdreg => open);		-- running disparity output (reg)
+
+tx_enc2 : encoder_8b10b
+	GENERIC MAP( METHOD => 1 )
+	PORT MAP(
+		clk => xCLK_40MHz,
+		rst => xCLR_ALL,
+		kin_ena => '0',		-- Data in is a special code, not all are legal.	
+		ein_ena => '1',		-- Data (or code) input enable
+		ein_dat => TX_DATA(15 downto 8),		-- 8b data in
+		ein_rd => TX_RDcomb,		-- running disparity input
+		eout_val => open,		-- data out is valid
+		eout_dat => TX_DATA10(19 downto 10),		-- data out
+		eout_rdcomb => open,		-- running disparity output (comb)
+		eout_rdreg => TX_RDreg);		-- running disparity output (reg)
+
+rx_dec : decoder_8b10b
+	GENERIC MAP(
+		RDERR =>1,
+		KERR => 1,
+		METHOD => 1)
+	PORT MAP(
+		clk => RX_OUTCLK,
+		rst => xCLR_ALL,
+		din_ena => '1',		-- 10b data ready
+		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
+		din_rd => RX_RDreg,		-- running disparity input
+		dout_val => open,		-- data out valid
+		dout_dat => RX_DATA(7 downto 0),		-- data out
+		dout_k => open,		-- special code
+		dout_kerr => open,		-- coding mistake detected
+		dout_rderr => open,		-- running disparity mistake detected
+		dout_rdcomb => open,		-- running disparity output (comb)
+		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
+
 xDC_lvds_tranceivers : lvds_tranceivers
 port map(
-			TX_DATA			=>		TX_DATA,
+			TX_DATA			=>		TX_DATA10,
 			TX_CLK			=>		xCLK_40MHz,
 			RX_ALIGN			=>		RX_ALIGN_BITSLIP,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
 			RX_CLK			=>		xRX_LVDS_CLK,
 			TX_LVDS_DATA	=>		xTX_LVDS_DATA,
-			RX_DATA			=>		RX_DATA,
+			RX_DATA			=>		RX_DATA10,
 			TX_OUTCLK		=>		xTX_LVDS_CLK,
 			RX_OUTCLK		=>		RX_OUTCLK);	
 
