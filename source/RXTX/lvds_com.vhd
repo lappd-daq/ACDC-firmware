@@ -20,7 +20,6 @@ entity lvds_com is
 			xSTART		 		: in   	std_logic_vector(4 downto 0);
 			xDONE		 			: out   	std_logic_vector(4 downto 0);
 			xCLR_ALL	 			: in   	std_logic;
-			xALIGN_ACTIVE		: in		std_logic;
 			xALIGN_SUCCESS		: out		std_logic;
 			 
 			xADC					: in   ChipData_array;
@@ -71,8 +70,8 @@ end lvds_com;
 
 architecture Behavioral of lvds_com is 
 
-type 	LVDS_ALIGN_TYPE is (CHECK, DOUBLE_CHECK, INCREMENT, ALIGN_DONE);
-signal LVDS_ALIGN_STATE			: LVDS_ALIGN_TYPE;
+type LINK_STATE_TYPE is (DOWN, CHECKING, UP);
+signal LINK_STATE : LINK_STATE_TYPE;
 
 type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, DELAY, READY);
 --type 	GET_CC_INSTRUCT_TYPE is (IDLE, CATCH0, CATCH1, CATCH2, CATCH3, READY);
@@ -83,6 +82,11 @@ type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3,
 										TRIG_RATE,
 										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
+
+signal kin_ena :	std_logic;		-- Data in is a special code, not all are legal.	
+signal ein_ena :	std_logic;		-- Data (or code) input enable
+signal din_ena :	std_logic;		-- Data (or code) input enable
+signal dout_val :	std_logic;		-- data out valid
 
 signal RX_ALIGN_BITSLIP			:	std_logic;
 signal RX_DATA						:	std_logic_vector(7 downto 0);
@@ -208,70 +212,71 @@ begin
 		CC_INSTRUCTION_READY_1     <= CC_INSTRUCTION_READY_0;
 	end if;
 end process;
---software activate high--
---bitslip RX align process--
-process(xCLK_40MHz, xALIGN_ACTIVE, xCLR_ALL)
+
+--Check if Link is disconnected
+process(xCLK_40MHz)
+variable i : integer range 5 downto 0;
+begin
+	if xCLR_ALL = '1' then
+		LINK_STATE <= DOWN;
+		i := 0;
+	elsif rising_edge(xCLK_40MHz) then
+		if RX_DATA10 = x"3FF" then
+			LINK_STATE <= DOWN;
+			i := 0;
+		else
+			if i < 5 then
+				LINK_STATE <= CHECKING;
+				i := i + 1;
+			else
+				LINK_STATE <= UP;
+			end if;
+		end if;
+	end if;
+end process;
+din_ena <= '1' when LINK_STATE = UP else '0';
+
+-- Check link encoding state
+process(xCLK_40MHz, xCLR_ALL)
 variable i : integer range 5 downto 0;	
 begin
 	if xCLR_ALL = '1' then
+		TX_DATA <= K28_1&K28_1;
+		kin_ena <= '1';
+		ein_ena <= '0';
 		ALIGN_SUCCESS <= '0';
 		--TX_DATA <= ALIGN_WORD_16;
-		TX_DATA <= (others=>'0');
-		LVDS_ALIGN_STATE <= CHECK;
 		RX_ALIGN_BITSLIP <= '0';
 		i := 0;
-	elsif falling_edge(xCLK_40MHz) and xALIGN_ACTIVE = '1' then
-		TX_DATA <= ALIGN_WORD_8 & ALIGN_WORD_8;
-		--LVDS_ALIGN_STATE <= CHECK;
-		
-		case LVDS_ALIGN_STATE is
-				
-				when CHECK =>
-					RX_ALIGN_BITSLIP <= '0';
-					CHECK_WORD <= RX_DATA;
-					--ALIGN_SUCCESS <= '0';
-					if RX_DATA = ALIGN_WORD_8 then
-						i := 0;
-						LVDS_ALIGN_STATE <= DOUBLE_CHECK;
-					else
-   					ALIGN_SUCCESS <= '0';
-						i := i + 1;
-						if i > 3 then
-							i := 0;
-							LVDS_ALIGN_STATE <= INCREMENT;
-						end if;
-					end if;
-				
-				when  DOUBLE_CHECK =>
-					CHECK_WORD <= RX_DATA;
-					if RX_DATA = ALIGN_WORD_8 then
-						LVDS_ALIGN_STATE <= ALIGN_DONE;
-					else
-						i := i + 1;
-						if i > 3 then
-							i := 0;
-							LVDS_ALIGN_STATE <= CHECK;
-						end if;
-					end if;
-				
-				when INCREMENT =>
-					i := i+1;
-					RX_ALIGN_BITSLIP <= '1';
-					if i > 1 then
-						i := 0;
-						RX_ALIGN_BITSLIP <= '0';
-						LVDS_ALIGN_STATE <= CHECK;
-					end if;
-				
-				when ALIGN_DONE =>
+	elsif falling_edge(xCLK_40MHz) then
+		if (LINK_STATE /= UP) then
+			TX_DATA <= K28_1&K28_1;
+			kin_ena <= '1';
+			ein_ena <= '0';
+			ALIGN_SUCCESS <= '0';
+			i := 0;
+		else
+			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
+				TX_DATA <= K28_7&K28_7;
+				kin_ena <= '1';
+				ein_ena <= '0';
+				ALIGN_SUCCESS <= '0';
+				i := 0;
+			else -- link is up and data is valid
+				if i < 5 then
+					i := i + 1;
+					TX_DATA <= K28_5&K28_5;
+					kin_ena <= '1';
+					ein_ena <= '0';
+					ALIGN_SUCCESS <= '0';
+				else
+					TX_DATA <= GOOD_DATA;
+					kin_ena <= '0';
+					ein_ena <= '1';
 					ALIGN_SUCCESS <= '1';
-					LVDS_ALIGN_STATE <= CHECK;
-		end case;
-		
-	elsif falling_edge(xCLK_40MHz) and ALIGN_SUCCESS = '1' 
-			and xALIGN_ACTIVE = '0' then
-		TX_DATA <= GOOD_DATA;
-		--LVDS_ALIGN_STATE <= CHECK;
+				end if;
+			end if;
+		end if;
 	end if;
 end process;
 	
@@ -563,13 +568,13 @@ variable mask_count : integer range 4 downto 0 := 0;
 end process;		
 
 
-tx_enc1 : encoder_8b10b
+tx_enc0 : encoder_8b10b
 	GENERIC MAP( METHOD => 1 )
 	PORT MAP(
 		clk => xCLK_40MHz,
 		rst => xCLR_ALL,
-		kin_ena => '0',		-- Data in is a special code, not all are legal.	
-		ein_ena => '1',		-- Data (or code) input enable
+		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
+		ein_ena => ein_ena,		-- Data (or code) input enable
 		ein_dat => TX_DATA(7 downto 0),		-- 8b data in
 		ein_rd => TX_RDreg,		-- running disparity input
 		eout_val => open,		-- data out is valid
@@ -577,13 +582,13 @@ tx_enc1 : encoder_8b10b
 		eout_rdcomb => TX_RDcomb,		-- running disparity output (comb)
 		eout_rdreg => open);		-- running disparity output (reg)
 
-tx_enc2 : encoder_8b10b
+tx_enc1 : encoder_8b10b
 	GENERIC MAP( METHOD => 1 )
 	PORT MAP(
 		clk => xCLK_40MHz,
 		rst => xCLR_ALL,
-		kin_ena => '0',		-- Data in is a special code, not all are legal.	
-		ein_ena => '1',		-- Data (or code) input enable
+		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
+		ein_ena => ein_ena,		-- Data (or code) input enable
 		ein_dat => TX_DATA(15 downto 8),		-- 8b data in
 		ein_rd => TX_RDcomb,		-- running disparity input
 		eout_val => open,		-- data out is valid
@@ -599,10 +604,10 @@ rx_dec : decoder_8b10b
 	PORT MAP(
 		clk => RX_OUTCLK,
 		rst => xCLR_ALL,
-		din_ena => '1',		-- 10b data ready
+		din_ena => din_ena,		-- 10b data ready
 		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
 		din_rd => RX_RDreg,		-- running disparity input
-		dout_val => open,		-- data out valid
+		dout_val => dout_val,		-- data out valid
 		dout_dat => RX_DATA(7 downto 0),		-- data out
 		dout_k => open,		-- special code
 		dout_kerr => open,		-- coding mistake detected
