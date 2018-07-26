@@ -21,22 +21,31 @@ USE ieee.std_logic_1164.all;
 
 LIBRARY work;
 
+use work.Definition_Pool.all;
+
+
 ENTITY lvds_tranceivers IS 
 	PORT
 	(
-		TX_CLK :  IN  STD_LOGIC;
-		RX_ALIGN :  IN  STD_LOGIC;
-		RX_LVDS_DATA :  IN  STD_LOGIC;
-		RX_CLK :  IN  STD_LOGIC;
-		TX_DATA :  IN  STD_LOGIC_VECTOR(19 DOWNTO 0);
-		TX_OUTCLK :  OUT  STD_LOGIC;
-		RX_OUTCLK :  OUT  STD_LOGIC;
-		RX_DATA :  OUT  STD_LOGIC_VECTOR(9 DOWNTO 0);
-		TX_LVDS_DATA :  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0)
+		CLK 				: 	IN  STD_LOGIC;
+		RST 				:  IN  STD_LOGIC;
+		TX_CLK 			:  IN  STD_LOGIC;
+		RX_ALIGN 		:  IN  STD_LOGIC;
+		RX_LVDS_DATA 	:  IN  STD_LOGIC;
+		RX_CLK 			:  IN  STD_LOGIC;
+		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
+		TX_DATA_RDY		:  IN  STD_LOGIC;
+		TX_BUF_FULL		:  out std_logic;
+		RX_BUF_EMPTY	:  out std_logic;
+		TX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_DATA 			:  OUT  STD_LOGIC_VECTOR(7 DOWNTO 0);
+		TX_LVDS_DATA 	:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
 END lvds_tranceivers;
 
 ARCHITECTURE bdf_type OF lvds_tranceivers IS 
+
 
 COMPONENT altlvds_tx0
 	PORT(tx_inclock : IN STD_LOGIC;
@@ -55,25 +64,336 @@ COMPONENT altlvds_rx0
 	);
 END COMPONENT;
 
+component tx_fifo
+	PORT
+	(
+		aclr		: IN STD_LOGIC  := '0';
+		data		: IN STD_LOGIC_VECTOR (15 DOWNTO 0);
+		rdclk		: IN STD_LOGIC ;
+		rdreq		: IN STD_LOGIC ;
+		wrclk		: IN STD_LOGIC ;
+		wrreq		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (15 DOWNTO 0);
+		rdempty		: OUT STD_LOGIC ;
+		wrfull		: OUT STD_LOGIC 
+	);
+end component;
+
+component rx_fifo
+	PORT
+	(
+		aclr		: IN STD_LOGIC  := '0';
+		data		: IN STD_LOGIC_VECTOR (7 DOWNTO 0);
+		rdclk		: IN STD_LOGIC ;
+		rdreq		: IN STD_LOGIC ;
+		wrclk		: IN STD_LOGIC ;
+		wrreq		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (7 DOWNTO 0);
+		rdempty		: OUT STD_LOGIC ;
+		wrfull		: OUT STD_LOGIC 
+	);
+end component;
+
+component lvds_cdr
+	port (
+		-- Input ports
+		reset 	: in  std_logic;
+		enable	: in  std_logic;
+		sys_clk	: in  std_logic;
+		lvds_clk	: in  std_logic := '0';
+		lvds_data	: in  std_logic := '0';
+
+		-- Output ports
+		rx_clk	: out  std_logic := '0';
+		rx_fastclk	: out  std_logic := '0';
+		rx_clk_ready	: out  std_logic := '0');
+end component;
+
+-- 8b10b components
+
+COMPONENT encoder_8b10b
+	GENERIC ( METHOD : INTEGER := 1 );
+	PORT
+	(
+		clk		:	 IN STD_LOGIC;
+		rst		:	 IN STD_LOGIC;
+		kin_ena		:	 IN STD_LOGIC;		-- Data in is a special code, not all are legal.	
+		ein_ena		:	 IN STD_LOGIC;		-- Data (or code) input enable
+		ein_dat		:	 IN STD_LOGIC_VECTOR(7 DOWNTO 0);		-- 8b data in
+		ein_rd		:	 IN STD_LOGIC;		-- running disparity input
+		eout_val		:	 OUT STD_LOGIC;		-- data out is valid
+		eout_dat		:	 OUT STD_LOGIC_VECTOR(9 DOWNTO 0);		-- data out
+		eout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
+		eout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
+	);
+END COMPONENT;
+
+COMPONENT decoder_8b10b
+	GENERIC ( RDERR : INTEGER := 1; KERR : INTEGER := 1; METHOD : INTEGER := 1 );
+	PORT
+	(
+		clk		:	 IN STD_LOGIC;
+		rst		:	 IN STD_LOGIC;
+		din_ena		:	 IN STD_LOGIC;		-- 10b data ready
+		din_dat		:	 IN STD_LOGIC_VECTOR(9 DOWNTO 0);		-- 10b data input
+		din_rd		:	 IN STD_LOGIC;		-- running disparity input
+		dout_val		:	 OUT STD_LOGIC;		-- data out valid
+		dout_dat		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);		-- data out
+		dout_k		:	 OUT STD_LOGIC;		-- special code
+		dout_kerr		:	 OUT STD_LOGIC;		-- coding mistake detected
+		dout_rderr		:	 OUT STD_LOGIC;		-- running disparity mistake detected
+		dout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
+		dout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
+	);
+END COMPONENT;
+
+type LINK_STATE_TYPE is (DOWN, CHECKING, UP);
+signal LINK_STATE : LINK_STATE_TYPE;
+
+type RX_ALIGNMENT_TYPE is (RESET, ALIGNING, READY);
+signal RX_ALIGNMENT_STATE : RX_ALIGNMENT_TYPE;
+
+signal LINK_STATE_OUT				:  std_logic_vector(15 downto 0);
+
+signal RX_CLK_LOCAL					:  std_logic := 'X';
+signal RX_DATA10						:	std_logic_vector(9 downto 0);
+signal TX_DATA10						: 	std_logic_vector(19 downto 0);
+
+signal ALIGNED_RX_CLK 			:  std_logic;
+signal ALIGNED_RX_FASTCLK 		:  std_logic;
+signal ALIGNED_RX_CLK_READY 	:  std_logic;
+
+-- 8b/10b sigals
+signal tx_enc_data				:  std_logic_vector(15 downto 0); 	-- input to the encoder, either code or data
+signal TX_RDcomb	: std_logic;
+signal TX_RDreg	: std_logic;
+signal RX_RDreg	: std_logic;
+signal kin_ena 	:	std_logic;		-- Data in is a special code, not all are legal.	
+signal ein_ena 	:	std_logic;		-- Data (or code) input enable
+signal din_ena 	:	std_logic;		-- Data (or code) input enable
+signal dout_val 	:	std_logic;		-- data out valid
+
+
+signal cdr_enable : std_logic;	-- enable the clock alignment module.
+
+-- fifo signals
+signal tx_fifo_rdreq		:  std_logic;
+signal tx_fifo_out		:  std_logic_vector(15 downto 0);
+signal tx_fifo_empty		:  std_logic;
+signal rx_fifo_empty		:  std_logic;
+signal rx_fifo_rdreq		:  std_logic;
+signal rx_fifo_in			:  std_logic_vector(7 downto 0);
+
 
 
 BEGIN 
 
 
 
+
+--Align RX Clock
+process(CLK)
+begin
+	if RST = '1' or LINK_STATE /= UP then
+		RX_ALIGNMENT_STATE <= RESET;
+	else
+		case RX_ALIGNMENT_STATE is 
+			when RESET =>
+				if (LINK_STATE <= UP) or (ALIGNED_RX_CLK_READY = '1') then
+					RX_ALIGNMENT_STATE <= ALIGNING;
+				end if;
+			when ALIGNING =>
+				if ALIGNED_RX_CLK_READY = '1' then
+					RX_ALIGNMENT_STATE <= READY;
+				end if;
+			when READY =>
+				if ALIGNED_RX_CLK_READY = '0' then
+					RX_ALIGNMENT_STATE <= ALIGNING;
+				end if;
+			when others =>
+				-- should never happen
+				RX_ALIGNMENT_STATE <= RESET;
+		end case;
+	end if;
+end process;
+
+
+tx_buf : tx_fifo
+	PORT MAP(
+		aclr	=> RST,
+		data	=> TX_DATA,
+		rdclk	=> TX_CLK,
+		rdreq	=> tx_fifo_rdreq,
+		wrclk	=> CLK,
+		wrreq	=> TX_DATA_RDY,
+		q		=> tx_fifo_out,
+		rdempty	=> tx_fifo_empty,
+		wrfull	=> TX_BUF_FULL 
+	);
+
+-- either send k-codes or data, depending on the fifo.
+-- May want to check if the other side is OK, first.
+tx_enc_input : process(RST, TX_CLK)
+begin
+	if RST = '1' then
+		tx_enc_data <= (others => '0');
+		kin_ena <= '0';
+		ein_ena <= '0';
+		tx_fifo_rdreq <= '0';
+	elsif rising_edge(CLK) then
+		if tx_fifo_empty = '0' then -- and the other side is locked.
+			tx_enc_data <= tx_fifo_out;
+			kin_ena <= '0';
+			ein_ena <= '1';
+			tx_fifo_rdreq <= '1';
+		else
+			tx_enc_data <= LINK_STATE_OUT;
+			kin_ena <= '1';
+			ein_ena <= '1';
+			tx_fifo_rdreq <= '0';
+		end if;
+	end if;
+end process;
+
+
+tx_enc0 : encoder_8b10b
+	GENERIC MAP( METHOD => 0 )
+	PORT MAP(
+		clk => TX_CLK,
+		rst => RST,
+		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
+		ein_ena => ein_ena,		-- Data (or code) input enable
+		ein_dat => tx_enc_data(7 downto 0),		-- 8b data in
+		ein_rd => TX_RDreg,		-- running disparity input
+		eout_val => open,		-- data out is valid
+		eout_dat => TX_DATA10(9 downto 0),		-- data out
+		eout_rdcomb => TX_RDcomb,		-- running disparity output (comb)
+		eout_rdreg => open);		-- running disparity output (reg)
+
+
+tx_enc1 : encoder_8b10b
+	GENERIC MAP( METHOD => 0 )
+	PORT MAP(
+		clk => TX_CLK,
+		rst => RST,
+		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
+		ein_ena => ein_ena,		-- Data (or code) input enable
+		ein_dat => tx_enc_data(15 downto 8),		-- 8b data in
+		ein_rd => TX_RDcomb,		-- running disparity input
+		eout_val => open,		-- data out is valid
+		eout_dat => TX_DATA10(19 downto 10),		-- data out
+		eout_rdcomb => open,		-- running disparity output (comb)
+		eout_rdreg => TX_RDreg);		-- running disparity output (reg)
+
 lvds_tx : altlvds_tx0
 PORT MAP(tx_inclock => TX_CLK,
-		 tx_in => TX_DATA,
+		 tx_in => TX_DATA10,
 		 tx_outclock => TX_OUTCLK,
 		 tx_out => TX_LVDS_DATA);
+
+cdr_enable <= '0' when RX_ALIGNMENT_STATE = RESET else '1';
+cdr : lvds_cdr
+	PORT MAP
+	(
+		-- Input ports
+		reset => RST,
+		enable => cdr_enable,
+		sys_clk => CLK,
+		lvds_clk	=> RX_CLK,
+		lvds_data => RX_LVDS_DATA,
+
+		-- Output ports
+		rx_clk => ALIGNED_RX_CLK,
+		rx_fastclk => ALIGNED_RX_FASTCLK,
+		rx_clk_ready => ALIGNED_RX_CLK_READY
+	);
 
 
 lvds_rx : altlvds_rx0
 PORT MAP(rx_data_align => RX_ALIGN,
-		 rx_inclock => RX_CLK,
+		 rx_inclock => ALIGNED_RX_CLK,
 		 rx_in(0) => RX_LVDS_DATA,
-		 rx_outclock => RX_OUTCLK,
-		 rx_out => RX_DATA);
+		 rx_outclock => RX_CLK_LOCAL,
+		 rx_out => RX_DATA10);
 
+--Check if Link is disconnected
+process(CLK)
+variable i : integer range 5 downto 0;
+begin
+	if RST = '1' then
+		LINK_STATE <= DOWN;
+		i := 0;
+	elsif rising_edge(CLK) then
+		if RX_DATA10 = x"3FF" then
+			LINK_STATE <= DOWN;
+			i := 0;
+		else
+			if i < 5 then
+				LINK_STATE <= CHECKING;
+				i := i + 1;
+			else
+				LINK_STATE <= UP;
+			end if;
+		end if;
+	end if;
+end process;
+
+din_ena <= '1' when RX_ALIGNMENT_STATE = READY else '0';
+
+rx_dec : decoder_8b10b
+	GENERIC MAP(
+		RDERR =>1,
+		KERR => 1,
+		METHOD => 0)
+	PORT MAP(
+		clk => RX_CLK_LOCAL,
+		rst => RST,
+		din_ena => din_ena,		-- 10b data ready
+		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
+		din_rd => RX_RDreg,		-- running disparity input
+		dout_val => dout_val,		-- data out valid
+		dout_dat => rx_fifo_in(7 downto 0),		-- data out
+		dout_k => open,		-- special code
+		dout_kerr => open,		-- coding mistake detected
+		dout_rderr => open,		-- running disparity mistake detected
+		dout_rdcomb => open,		-- running disparity output (comb)
+		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
+
+
+rx_buf : rx_fifo
+	PORT MAP(
+		aclr	=> RST,
+		data	=> rx_fifo_in,
+		rdclk	=> CLK,
+		rdreq	=> rx_fifo_rdreq,
+		wrclk	=> RX_CLK_LOCAL,
+		wrreq	=> dout_val,
+		q		=> RX_DATA,
+		rdempty	=> rx_fifo_empty,
+		wrfull	=> TX_BUF_FULL 
+	);
+
+rx_fifo_rdreq <= (NOT rx_fifo_empty) and (NOT RST);
+
+-- Check link encoding state (may want to enable the fifo input with this)
+process(RX_CLK_LOCAL, RST)
+begin
+	if RST = '1' then
+		LINK_STATE_OUT <= K28_1&K28_1;
+		--TX_DATA <= ALIGN_WORD_16;
+	elsif rising_edge(RX_CLK_LOCAL) then
+		if (LINK_STATE /= UP) then
+			LINK_STATE_OUT <= K28_1&K28_1;
+		else
+			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
+				LINK_STATE_OUT <= K28_7&K28_7;
+			else -- link is up and data is valid
+				LINK_STATE_OUT <= K28_5&K28_5;
+			end if;
+		end if;
+	end if;
+end process;
+
+RX_OUTCLK <= RX_CLK_LOCAL;
 
 END bdf_type;

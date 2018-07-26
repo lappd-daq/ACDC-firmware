@@ -20,6 +20,7 @@ entity lvds_com is
 			xSTART		 		: in   	std_logic_vector(4 downto 0);
 			xDONE		 			: out   	std_logic_vector(4 downto 0);
 			xCLR_ALL	 			: in   	std_logic;
+			xRX_LVDS_CLK	 	: in		std_logic;
 			xALIGN_SUCCESS		: out		std_logic;
 			 
 			xADC					: in   ChipData_array;
@@ -41,7 +42,6 @@ entity lvds_com is
 			
 				
 			xCLK_40MHz			: in		std_logic;
-			xRX_LVDS_CLK	 	: in		std_logic;
 			xRX_LVDS_DATA	 	: in		std_logic;
 			xINSTRUCTION		: out		std_logic_vector(31 downto 0);
 			xINSTRUCT_READY	: out		std_logic;
@@ -58,20 +58,17 @@ entity lvds_com is
 			xPULL_RAM_DATA				: in  std_logic;
 			
 			xTX_LVDS_DATA		: out		std_logic_vector(1 downto 0);
-			xTX_LVDS_CLK		: out		std_logic;
 
 			xRADDR				: out  	std_logic_vector (RAM_ADR_SIZE-1 downto 0);
 			xRAM_READ_EN		: out		std_logic_vector(4 downto 0);
 			xDC_XFER_DONE		: out		std_logic_vector(4 downto 0);
 			xTX_BUSY				: out 	std_logic;
-			xRX_BUSY				: out		std_logic);
+			xRX_BUSY				: out		std_logic;
+			xTX_LVDS_CLK		: out		std_logic);
 			
 end lvds_com;
 
 architecture Behavioral of lvds_com is 
-
-type LINK_STATE_TYPE is (DOWN, CHECKING, UP);
-signal LINK_STATE : LINK_STATE_TYPE;
 
 type 	GET_CC_INSTRUCT_TYPE is (IDLE, ONDECK, CATCH0, CATCH1, CATCH2, CATCH3, DELAY, READY);
 --type 	GET_CC_INSTRUCT_TYPE is (IDLE, CATCH0, CATCH1, CATCH2, CATCH3, READY);
@@ -83,23 +80,14 @@ type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3,
 										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
-signal kin_ena :	std_logic;		-- Data in is a special code, not all are legal.	
-signal ein_ena :	std_logic;		-- Data (or code) input enable
-signal din_ena :	std_logic;		-- Data (or code) input enable
-signal dout_val :	std_logic;		-- data out valid
+
 
 signal RX_ALIGN_BITSLIP			:	std_logic;
 signal RX_DATA						:	std_logic_vector(7 downto 0);
-signal RX_DATA10						:	std_logic_vector(9 downto 0);
 signal CHECK_WORD					:	std_logic_vector(7 downto 0);
 signal TX_DATA						: 	std_logic_vector(15 downto 0);
-signal TX_DATA10						: 	std_logic_vector(19 downto 0);
 signal ALIGN_SUCCESS				:  std_logic := '0';
 signal GOOD_DATA					:  std_logic_vector(15 downto 0);
-
-signal TX_RDcomb						: std_logic;
-signal TX_RDreg							: std_logic;
-signal RX_RDreg							: std_logic;
 
 signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
@@ -130,54 +118,28 @@ signal SYSTEM_START				: std_logic;
 
 component lvds_tranceivers
 	port (
-			TX_DATA			: in	std_logic_vector(19 downto 0);
-			TX_CLK			: in	std_logic;
-			RX_ALIGN			: in	std_logic;
-			RX_LVDS_DATA	: in	std_logic;
-			RX_CLK			: in	std_logic;
-			TX_LVDS_DATA	: out	std_logic_vector(1 downto 0);
-			RX_DATA			: out	std_logic_vector(9 downto 0);
-			TX_OUTCLK		: out	std_logic;
-			RX_OUTCLK		: out std_logic);
+		CLK 				: 	IN  STD_LOGIC;
+		RST 				:  IN  STD_LOGIC;
+		TX_CLK 			:  IN  STD_LOGIC;
+		RX_ALIGN 		:  IN  STD_LOGIC;
+		RX_LVDS_DATA 	:  IN  STD_LOGIC;
+		RX_CLK 			:  IN  STD_LOGIC;
+		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
+		TX_DATA_RDY 	:  IN  STD_LOGIC;
+		TX_BUF_FULL		:  out std_logic;
+		RX_BUF_EMPTY	:  out std_logic;
+		TX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_DATA 			:  OUT  STD_LOGIC_VECTOR(7 DOWNTO 0);
+		TX_LVDS_DATA 	:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0));
 end component;
 
--- 8b10b components
+-- Phase-shifting PLL to recreate source-syncrhonous SerDes clock on a non-clock pin.
+-- (Doing this requires that the sources for the sending and local clock are PLLd to the same
+--  frequency and just have an unknown (and only slowly varying) phase difference.)
 
-COMPONENT encoder_8b10b
-	GENERIC ( METHOD : INTEGER := 1 );
-	PORT
-	(
-		clk		:	 IN STD_LOGIC;
-		rst		:	 IN STD_LOGIC;
-		kin_ena		:	 IN STD_LOGIC;		-- Data in is a special code, not all are legal.	
-		ein_ena		:	 IN STD_LOGIC;		-- Data (or code) input enable
-		ein_dat		:	 IN STD_LOGIC_VECTOR(7 DOWNTO 0);		-- 8b data in
-		ein_rd		:	 IN STD_LOGIC;		-- running disparity input
-		eout_val		:	 OUT STD_LOGIC;		-- data out is valid
-		eout_dat		:	 OUT STD_LOGIC_VECTOR(9 DOWNTO 0);		-- data out
-		eout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
-		eout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
-	);
-END COMPONENT;
+-- phase shifter
 
-COMPONENT decoder_8b10b
-	GENERIC ( RDERR : INTEGER := 1; KERR : INTEGER := 1; METHOD : INTEGER := 1 );
-	PORT
-	(
-		clk		:	 IN STD_LOGIC;
-		rst		:	 IN STD_LOGIC;
-		din_ena		:	 IN STD_LOGIC;		-- 10b data ready
-		din_dat		:	 IN STD_LOGIC_VECTOR(9 DOWNTO 0);		-- 10b data input
-		din_rd		:	 IN STD_LOGIC;		-- running disparity input
-		dout_val		:	 OUT STD_LOGIC;		-- data out valid
-		dout_dat		:	 OUT STD_LOGIC_VECTOR(7 DOWNTO 0);		-- data out
-		dout_k		:	 OUT STD_LOGIC;		-- special code
-		dout_kerr		:	 OUT STD_LOGIC;		-- coding mistake detected
-		dout_rderr		:	 OUT STD_LOGIC;		-- running disparity mistake detected
-		dout_rdcomb		:	 OUT STD_LOGIC;		-- running disparity output (comb)
-		dout_rdreg		:	 OUT STD_LOGIC		-- running disparity output (reg)
-	);
-END COMPONENT;
 
 begin
 
@@ -213,72 +175,9 @@ begin
 	end if;
 end process;
 
---Check if Link is disconnected
-process(xCLK_40MHz)
-variable i : integer range 5 downto 0;
-begin
-	if xCLR_ALL = '1' then
-		LINK_STATE <= DOWN;
-		i := 0;
-	elsif rising_edge(xCLK_40MHz) then
-		if RX_DATA10 = x"3FF" then
-			LINK_STATE <= DOWN;
-			i := 0;
-		else
-			if i < 5 then
-				LINK_STATE <= CHECKING;
-				i := i + 1;
-			else
-				LINK_STATE <= UP;
-			end if;
-		end if;
-	end if;
-end process;
-din_ena <= '1' when LINK_STATE = UP else '0';
 
--- Check link encoding state
-process(xCLK_40MHz, xCLR_ALL)
-variable i : integer range 5 downto 0;	
-begin
-	if xCLR_ALL = '1' then
-		TX_DATA <= K28_1&K28_1;
-		kin_ena <= '1';
-		ein_ena <= '0';
-		ALIGN_SUCCESS <= '0';
-		--TX_DATA <= ALIGN_WORD_16;
-		RX_ALIGN_BITSLIP <= '0';
-		i := 0;
-	elsif falling_edge(xCLK_40MHz) then
-		if (LINK_STATE /= UP) then
-			TX_DATA <= K28_1&K28_1;
-			kin_ena <= '1';
-			ein_ena <= '0';
-			ALIGN_SUCCESS <= '0';
-			i := 0;
-		else
-			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
-				TX_DATA <= K28_7&K28_7;
-				kin_ena <= '1';
-				ein_ena <= '0';
-				ALIGN_SUCCESS <= '0';
-				i := 0;
-			else -- link is up and data is valid
-				if i < 5 then
-					i := i + 1;
-					TX_DATA <= K28_5&K28_5;
-					kin_ena <= '1';
-					ein_ena <= '0';
-					ALIGN_SUCCESS <= '0';
-				else
-					TX_DATA <= GOOD_DATA;
-					kin_ena <= '0';
-					ein_ena <= '1';
-					ALIGN_SUCCESS <= '1';
-				end if;
-			end if;
-		end if;
-	end if;
-end process;
+
+
 	
 process(RX_OUTCLK, ALIGN_SUCCESS, xCLR_ALL)
 variable i : integer range 50 downto 0;	
@@ -568,62 +467,20 @@ variable mask_count : integer range 4 downto 0 := 0;
 end process;		
 
 
-tx_enc0 : encoder_8b10b
-	GENERIC MAP( METHOD => 1 )
-	PORT MAP(
-		clk => xCLK_40MHz,
-		rst => xCLR_ALL,
-		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
-		ein_ena => ein_ena,		-- Data (or code) input enable
-		ein_dat => TX_DATA(7 downto 0),		-- 8b data in
-		ein_rd => TX_RDreg,		-- running disparity input
-		eout_val => open,		-- data out is valid
-		eout_dat => TX_DATA10(9 downto 0),		-- data out
-		eout_rdcomb => TX_RDcomb,		-- running disparity output (comb)
-		eout_rdreg => open);		-- running disparity output (reg)
-
-tx_enc1 : encoder_8b10b
-	GENERIC MAP( METHOD => 1 )
-	PORT MAP(
-		clk => xCLK_40MHz,
-		rst => xCLR_ALL,
-		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
-		ein_ena => ein_ena,		-- Data (or code) input enable
-		ein_dat => TX_DATA(15 downto 8),		-- 8b data in
-		ein_rd => TX_RDcomb,		-- running disparity input
-		eout_val => open,		-- data out is valid
-		eout_dat => TX_DATA10(19 downto 10),		-- data out
-		eout_rdcomb => open,		-- running disparity output (comb)
-		eout_rdreg => TX_RDreg);		-- running disparity output (reg)
-
-rx_dec : decoder_8b10b
-	GENERIC MAP(
-		RDERR =>1,
-		KERR => 1,
-		METHOD => 1)
-	PORT MAP(
-		clk => RX_OUTCLK,
-		rst => xCLR_ALL,
-		din_ena => din_ena,		-- 10b data ready
-		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
-		din_rd => RX_RDreg,		-- running disparity input
-		dout_val => dout_val,		-- data out valid
-		dout_dat => RX_DATA(7 downto 0),		-- data out
-		dout_k => open,		-- special code
-		dout_kerr => open,		-- coding mistake detected
-		dout_rderr => open,		-- running disparity mistake detected
-		dout_rdcomb => open,		-- running disparity output (comb)
-		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
-
 xDC_lvds_tranceivers : lvds_tranceivers
 port map(
-			TX_DATA			=>		TX_DATA10,
+			CLK				=>		xCLK_40MHz,
+			RST				=>		xCLR_ALL,
+			TX_DATA			=>		TX_DATA,
 			TX_CLK			=>		xCLK_40MHz,
 			RX_ALIGN			=>		RX_ALIGN_BITSLIP,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
 			RX_CLK			=>		xRX_LVDS_CLK,
 			TX_LVDS_DATA	=>		xTX_LVDS_DATA,
-			RX_DATA			=>		RX_DATA10,
+			TX_DATA_RDY    =>		'1',
+			TX_BUF_FULL 	=> 	open,
+			RX_BUF_EMPTY	=> 	open,
+			RX_DATA			=>		RX_DATA,
 			TX_OUTCLK		=>		xTX_LVDS_CLK,
 			RX_OUTCLK		=>		RX_OUTCLK);	
 

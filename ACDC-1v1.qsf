@@ -41,7 +41,7 @@ set_global_assignment -name DEVICE EP4CGX110DF27C7
 set_global_assignment -name TOP_LEVEL_ENTITY ACDC_top_level
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 12.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "15:58:36  OCTOBER 26, 2014"
-set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name LAST_QUARTUS_VERSION "18.0.0 Standard Edition"
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
@@ -676,7 +676,7 @@ set_global_assignment -name EDA_OUTPUT_DATA_FORMAT IBIS -section_id eda_board_de
 set_global_assignment -name EDA_NETLIST_WRITER_OUTPUT_DIR FPGA -section_id eda_board_design_symbol
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to FPGA_CLKOUT
 set_location_assignment PIN_A11 -to FPGA_CLKOUT
-set_global_assignment -name DEVICE_MIGRATION_LIST "EP4CGX110DF27C7,EP4CGX110DF27C8,EP4CGX110DF27I7,EP4CGX150DF27C7,EP4CGX150DF27I7,EP4CGX150DF27C8,EP4CGX150DF27I7"
+set_global_assignment -name DEVICE_MIGRATION_LIST EP4CGX110DF27C7
 set_location_assignment PIN_E1 -to DAC_0_clr_n
 set_location_assignment PIN_C1 -to DAC_1_clr_n
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to DAC_1_clr_n
@@ -823,14 +823,6 @@ set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -
 set_global_assignment -name ACTIVE_SERIAL_CLOCK FREQ_40MHZ
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
-set_global_assignment -name SEARCH_PATH source/lvds
-set_global_assignment -name SEARCH_PATH source/ -tag from_archive
-set_global_assignment -name SEARCH_PATH source/AC_CONTROL/ -tag from_archive
-set_global_assignment -name SEARCH_PATH source/CLK/ -tag from_archive
-set_global_assignment -name SEARCH_PATH source/USB/ -tag from_archive
-set_global_assignment -name SEARCH_PATH mega/ -tag from_archive
-set_global_assignment -name SEARCH_PATH source/lvds/ -tag from_archive
-set_global_assignment -name SEARCH_PATH Digital_Card/source/
 
 
 set_global_assignment -name CYCLONEIII_CONFIGURATION_DEVICE EPCS64
@@ -839,14 +831,23 @@ set_global_assignment -name USE_SIGNALTAP_FILE tap_self_trig_1_fast_clk.stp
 set_global_assignment -name OPTIMIZE_HOLD_TIMING "ALL PATHS"
 set_global_assignment -name OPTIMIZE_MULTI_CORNER_TIMING ON
 set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
-set_global_assignment -name TIMEQUEST_DO_REPORT_TIMING ON
+set_global_assignment -name TIMING_ANALYZER_DO_REPORT_TIMING ON
 set_global_assignment -name SYNCHRONIZER_IDENTIFICATION AUTO
-set_global_assignment -name TIMEQUEST_DO_CCPP_REMOVAL ON
+set_global_assignment -name TIMING_ANALYZER_DO_CCPP_REMOVAL ON
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to GPIO_2v5[1]
 set_instance_assignment -name IO_MAXIMUM_TOGGLE_RATE "0 MHz" -to GPIO_2v5[11]
+set_global_assignment -name SEARCH_PATH "e:\\psec4\\acdc\\firmware\\acdc-firmware\\source\\rxtx"
+set_global_assignment -name SEARCH_PATH source/lvds
+set_global_assignment -name SEARCH_PATH source/
+set_global_assignment -name SEARCH_PATH source/ac_control/
+set_global_assignment -name SEARCH_PATH source/clk/
+set_global_assignment -name SEARCH_PATH source/usb/
+set_global_assignment -name SEARCH_PATH mega/
+set_global_assignment -name SEARCH_PATH source/lvds/
+set_global_assignment -name SEARCH_PATH digital_card/source/
 set_global_assignment -name VERILOG_FILE source/RXTX/encoder_8b10b.v
 set_global_assignment -name VERILOG_FILE source/RXTX/decoder_8b10b.v
 set_global_assignment -name VHDL_FILE source/RXTX/lvds_tranceivers.vhd
@@ -883,4 +884,8 @@ set_global_assignment -name VHDL_FILE source/Definition_Pool.vhd
 set_global_assignment -name BDF_FILE source/ACDC_top_level.bdf
 set_global_assignment -name QIP_FILE altpll3.qip
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/VCDL_Monitor_Loop.vhd
+set_global_assignment -name QIP_FILE source/RXTX/altpll_rx_phaseshift.qip
+set_global_assignment -name VHDL_FILE source/RXTX/lvds_cdr.vhd
+set_global_assignment -name QIP_FILE source/RXTX/tx_fifo.qip
+set_global_assignment -name QIP_FILE source/RXTX/rx_fifo.qip
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

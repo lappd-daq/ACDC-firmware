@@ -2391,30 +2391,6 @@ applicable agreement for further details.
 	)
 )
 (symbol
-	(rect 2272 160 2320 192)
-	(text "WIRE" (rect 1 0 24 10)(font "Arial" (font_size 6)))
-	(text "inst1" (rect 3 21 26 33)(font "Arial" ))
-	(port
-		(pt 0 16)
-		(input)
-		(text "IN" (rect 2 7 13 19)(font "Courier New" (bold))(invisible))
-		(text "IN" (rect 2 7 13 19)(font "Courier New" (bold))(invisible))
-		(line (pt 0 16)(pt 14 16))
-	)
-	(port
-		(pt 48 16)
-		(output)
-		(text "OUT" (rect 32 7 49 19)(font "Courier New" (bold))(invisible))
-		(text "OUT" (rect 32 7 49 19)(font "Courier New" (bold))(invisible))
-		(line (pt 32 16)(pt 48 16))
-	)
-	(drawing
-		(line (pt 14 7)(pt 32 16))
-		(line (pt 14 25)(pt 14 7))
-		(line (pt 14 25)(pt 32 16))
-	)
-)
-(symbol
 	(rect 1952 856 2184 1144)
 	(text "DC_LED_MAP" (rect 5 0 76 12)(font "Arial" ))
 	(text "inst9" (rect 8 272 31 284)(font "Arial" ))
@@ -4353,6 +4329,23 @@ applicable agreement for further details.
 	)
 )
 (symbol
+	(rect 2240 360 2272 392)
+	(text "GND" (rect 8 16 29 26)(font "Arial" (font_size 6)))
+	(text "inst6" (rect 3 21 26 33)(font "Arial" )(invisible))
+	(port
+		(pt 16 0)
+		(output)
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(line (pt 16 8)(pt 16 0))
+	)
+	(drawing
+		(line (pt 8 8)(pt 16 16))
+		(line (pt 16 16)(pt 24 8))
+		(line (pt 8 8)(pt 24 8))
+	)
+)
+(symbol
 	(rect 1752 184 2144 680)
 	(text "lvds_com" (rect 5 0 53 12)(font "Arial" ))
 	(text "inst2" (rect 8 480 31 492)(font "Arial" ))
@@ -4373,8 +4366,8 @@ applicable agreement for further details.
 	(port
 		(pt 0 64)
 		(input)
-		(text "xALIGN_ACTIVE" (rect 0 0 83 12)(font "Arial" ))
-		(text "xALIGN_ACTIVE" (rect 21 59 104 71)(font "Arial" ))
+		(text "xRX_LVDS_CLK" (rect 0 0 81 12)(font "Arial" ))
+		(text "xRX_LVDS_CLK" (rect 21 59 102 71)(font "Arial" ))
 		(line (pt 0 64)(pt 16 64))
 	)
 	(port
@@ -4556,91 +4549,81 @@ applicable agreement for further details.
 		(pt 392 32)
 		(output)
 		(text "xDONE[4..0]" (rect 0 0 63 12)(font "Arial" ))
-		(text "xDONE[4..0]" (rect 318 27 381 39)(font "Arial" ))
+		(text "xDONE[4..0]" (rect 318 27 371 39)(font "Arial" ))
 		(line (pt 392 32)(pt 376 32)(line_width 3))
 	)
 	(port
 		(pt 392 48)
 		(output)
 		(text "xALIGN_SUCCESS" (rect 0 0 97 12)(font "Arial" ))
-		(text "xALIGN_SUCCESS" (rect 289 43 386 55)(font "Arial" ))
+		(text "xALIGN_SUCCESS" (rect 289 43 371 55)(font "Arial" ))
 		(line (pt 392 48)(pt 376 48))
 	)
 	(port
 		(pt 392 64)
 		(output)
 		(text "xINSTRUCTION[31..0]" (rect 0 0 113 12)(font "Arial" ))
-		(text "xINSTRUCTION[31..0]" (rect 276 59 389 71)(font "Arial" ))
+		(text "xINSTRUCTION[31..0]" (rect 276 59 371 71)(font "Arial" ))
 		(line (pt 392 64)(pt 376 64)(line_width 3))
 	)
 	(port
 		(pt 392 80)
 		(output)
 		(text "xINSTRUCT_READY" (rect 0 0 106 12)(font "Arial" ))
-		(text "xINSTRUCT_READY" (rect 282 75 388 87)(font "Arial" ))
+		(text "xINSTRUCT_READY" (rect 282 75 371 87)(font "Arial" ))
 		(line (pt 392 80)(pt 376 80))
 	)
 	(port
 		(pt 392 96)
 		(output)
 		(text "xTX_LVDS_DATA[1..0]" (rect 0 0 112 12)(font "Arial" ))
-		(text "xTX_LVDS_DATA[1..0]" (rect 277 91 389 103)(font "Arial" ))
+		(text "xTX_LVDS_DATA[1..0]" (rect 277 91 371 103)(font "Arial" ))
 		(line (pt 392 96)(pt 376 96)(line_width 3))
 	)
 	(port
 		(pt 392 112)
 		(output)
 		(text "xRADDR[13..0]" (rect 0 0 77 12)(font "Arial" ))
-		(text "xRADDR[13..0]" (rect 306 107 383 119)(font "Arial" ))
+		(text "xRADDR[13..0]" (rect 306 107 371 119)(font "Arial" ))
 		(line (pt 392 112)(pt 376 112)(line_width 3))
 	)
 	(port
 		(pt 392 128)
 		(output)
 		(text "xRAM_READ_EN[4..0]" (rect 0 0 113 12)(font "Arial" ))
-		(text "xRAM_READ_EN[4..0]" (rect 276 123 389 135)(font "Arial" ))
+		(text "xRAM_READ_EN[4..0]" (rect 276 123 371 135)(font "Arial" ))
 		(line (pt 392 128)(pt 376 128)(line_width 3))
 	)
 	(port
 		(pt 392 144)
 		(output)
 		(text "xDC_XFER_DONE[4..0]" (rect 0 0 120 12)(font "Arial" ))
-		(text "xDC_XFER_DONE[4..0]" (rect 270 139 390 151)(font "Arial" ))
+		(text "xDC_XFER_DONE[4..0]" (rect 270 139 371 151)(font "Arial" ))
 		(line (pt 392 144)(pt 376 144)(line_width 3))
 	)
 	(port
 		(pt 392 160)
 		(output)
 		(text "xTX_BUSY" (rect 0 0 54 12)(font "Arial" ))
-		(text "xTX_BUSY" (rect 326 155 380 167)(font "Arial" ))
+		(text "xTX_BUSY" (rect 326 155 371 167)(font "Arial" ))
 		(line (pt 392 160)(pt 376 160))
 	)
 	(port
 		(pt 392 176)
 		(output)
 		(text "xRX_BUSY" (rect 0 0 56 12)(font "Arial" ))
-		(text "xRX_BUSY" (rect 324 171 380 183)(font "Arial" ))
+		(text "xRX_BUSY" (rect 324 171 371 183)(font "Arial" ))
 		(line (pt 392 176)(pt 376 176))
+	)
+	(port
+		(pt 392 192)
+		(output)
+		(text "xTX_LVDS_CLK" (rect 0 0 79 12)(font "Arial" ))
+		(text "xTX_LVDS_CLK" (rect 305 187 371 199)(font "Arial" ))
+		(line (pt 392 192)(pt 376 192))
 	)
 	(drawing
 		(rectangle (rect 16 16 376 480))
-	)
-)
-(symbol
-	(rect 2240 360 2272 392)
-	(text "GND" (rect 8 16 29 26)(font "Arial" (font_size 6)))
-	(text "inst6" (rect 3 21 26 33)(font "Arial" )(invisible))
-	(port
-		(pt 16 0)
-		(output)
-		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
-		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
-		(line (pt 16 8)(pt 16 0))
-	)
-	(drawing
-		(line (pt 8 8)(pt 16 16))
-		(line (pt 16 16)(pt 24 8))
-		(line (pt 8 8)(pt 24 8))
 	)
 )
 (connector
@@ -4789,15 +4772,6 @@ applicable agreement for further details.
 (connector
 	(pt -24 240)
 	(pt -32 240)
-)
-(connector
-	(pt 2272 176)
-	(pt 2232 176)
-)
-(connector
-	(text "lvds_tx_out[3]" (rect 2342 120 2412 132)(font "Arial" ))
-	(pt 2320 176)
-	(pt 2360 176)
 )
 (connector
 	(text "Xclk10" (rect 370 232 401 244)(font "Arial" ))
@@ -5134,11 +5108,6 @@ applicable agreement for further details.
 	(pt 768 136)
 	(pt 808 136)
 	(bus)
-)
-(connector
-	(text "lvds_rx_in[1]" (rect 583 136 646 148)(font "Arial" ))
-	(pt 560 152)
-	(pt 808 152)
 )
 (connector
 	(text "setRO_cnt[4..0][15..0]" (rect 665 192 775 204)(font "Arial" ))
@@ -5752,12 +5721,6 @@ applicable agreement for further details.
 	(bus)
 )
 (connector
-	(text "lvds_tx_out[1..0]" (rect 2200 272 2283 284)(font "Arial" ))
-	(pt 2144 280)
-	(pt 2184 280)
-	(bus)
-)
-(connector
 	(text "xDONE[4..0]" (rect 2161 200 2224 212)(font "Arial" ))
 	(pt 2144 216)
 	(pt 2184 216)
@@ -5811,14 +5774,6 @@ applicable agreement for further details.
 	(pt 2144 264)
 )
 (connector
-	(pt 2232 176)
-	(pt 2232 232)
-)
-(connector
-	(pt 2232 232)
-	(pt 2232 312)
-)
-(connector
 	(text "start[4..0]" (rect 1668 208 1716 220)(font "Arial" ))
 	(pt 1720 216)
 	(pt 1752 216)
@@ -5828,11 +5783,6 @@ applicable agreement for further details.
 	(text "Xclear_all" (rect 1663 224 1709 236)(font "Arial" ))
 	(pt 1720 232)
 	(pt 1752 232)
-)
-(connector
-	(text "lvds_rx_in[2]" (rect 1656 240 1719 252)(font "Arial" ))
-	(pt 1720 248)
-	(pt 1752 248)
 )
 (connector
 	(text "adc[4..0][15..0]" (rect 1642 256 1717 268)(font "Arial" ))
@@ -5947,11 +5897,6 @@ applicable agreement for further details.
 	(pt 808 72)
 )
 (connector
-	(text "lvds_rx_in[1]" (rect 2263 368 2326 380)(font "Arial" ))
-	(pt 2328 376)
-	(pt 2360 376)
-)
-(connector
 	(text "clocked_trig" (rect 214 32 273 44)(font "Arial" ))
 	(pt 280 48)
 	(pt 224 48)
@@ -5964,11 +5909,6 @@ applicable agreement for further details.
 	(text "adc_started" (rect 1391 1464 1448 1476)(font "Arial" ))
 	(pt 1280 1464)
 	(pt 1440 1464)
-)
-(connector
-	(text "lvds_tx_out[2]" (rect 1512 1448 1582 1460)(font "Arial" ))
-	(pt 1488 1464)
-	(pt 1544 1464)
 )
 (connector
 	(text "adc_started" (rect 2273 384 2330 396)(font "Arial" ))
@@ -6177,8 +6117,42 @@ applicable agreement for further details.
 	(pt 2360 360)
 	(pt 2256 360)
 )
+(connector
+	(text "lvds_rx_in[2]" (rect 583 136 646 148)(font "Arial" ))
+	(pt 560 152)
+	(pt 808 152)
+)
+(connector
+	(text "lvds_rx_in[1]" (rect 1656 240 1719 252)(font "Arial" ))
+	(pt 1720 248)
+	(pt 1752 248)
+)
+(connector
+	(text "lvds_rx_in[2]" (rect 2263 368 2326 380)(font "Arial" ))
+	(pt 2328 376)
+	(pt 2360 376)
+)
+(connector
+	(pt 2232 232)
+	(pt 2232 312)
+)
+(connector
+	(text "lvds_tx_out[2..1]" (rect 2200 272 2283 284)(font "Arial" ))
+	(pt 2144 280)
+	(pt 2184 280)
+	(bus)
+)
+(connector
+	(text "lvds_tx_out[0]" (rect 1512 1448 1582 1460)(font "Arial" ))
+	(pt 1488 1464)
+	(pt 1544 1464)
+)
+(connector
+	(text "lvds_tx_out[3]" (rect 2177 360 2247 372)(font "Arial" ))
+	(pt 2144 376)
+	(pt 2208 376)
+)
 (junction (pt 768 56))
-(junction (pt 2232 232))
 (junction (pt 1360 -16))
 (junction (pt 1360 0))
 (junction (pt 1360 16))
