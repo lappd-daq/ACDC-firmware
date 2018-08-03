@@ -56,6 +56,7 @@ entity lvds_com is
 				
 			xSYSTEM_IS_CLEAR			: in	std_logic;
 			xPULL_RAM_DATA				: in  std_logic;
+			xCLK_COMS					: in  std_logic;
 			
 			xTX_LVDS_DATA		: out		std_logic_vector(1 downto 0);
 
@@ -80,8 +81,9 @@ type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3,
 										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
-
-
+signal TX_DATA_RDY 				:  std_logic;
+signal TX_BUF_FULL 				:  std_logic;
+signal RX_BUF_EMPTY				:  std_logic;
 signal RX_ALIGN_BITSLIP			:	std_logic;
 signal RX_DATA						:	std_logic_vector(7 downto 0);
 signal CHECK_WORD					:	std_logic_vector(7 downto 0);
@@ -311,11 +313,13 @@ end process;
 --DONE <= internal_done_bit;
 process(xCLK_40MHz, START, xCLR_ALL, PSEC_MASK, xSYSTEM_IS_CLEAR )				
 variable i : integer range 50 downto 0;	
-variable mask_count : integer range 4 downto 0 := 0;	
+variable mask_count : integer range 4 downto 0 := 0;
+variable valid_data : std_logic;	
 	begin
 	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0' then
 		RADDR 				<= "00000000000000";--(others=>'0');
 		GOOD_DATA 			<= (others=>'0');
+		valid_data			:= '0';
 		RAM_CNT				<= (others=>'0');
 		RAM_CNT_TEMP		<= (others=>'0');
 		internal_done_bit <= '0';
@@ -324,7 +328,8 @@ variable mask_count : integer range 4 downto 0 := 0;
 		mask_count 			:= 0;
 		LVDS_MESS_STATE 	<= MESS_START;
 
-	elsif falling_edge(xCLK_40MHz) and (START = '1'  or SYSTEM_START = '1') then		
+	elsif falling_edge(xCLK_40MHz) and (TX_BUF_FULL = '0') and (START = '1'  or SYSTEM_START = '1') then		
+			valid_data := '1';  -- valid output data, unless we set it otherwise later.
 			case LVDS_MESS_STATE is
 				
 				when MESS_START =>	
@@ -443,6 +448,7 @@ variable mask_count : integer range 4 downto 0 := 0;
 						
 				when CC_DONE =>
 					GOOD_DATA <= (others=>'0');
+					valid_data := '0';
 					--if xSYSTEM_IS_CLEAR = '1' then
 						LVDS_MESS_STATE <= GND_STATE;	
 					--else
@@ -455,33 +461,37 @@ variable mask_count : integer range 4 downto 0 := 0;
 						LVDS_MESS_STATE <= GND_STATE_END;
 					else
 						GOOD_DATA <= (others=>'0');
+						valid_data := '0';
 						internal_done_bit <= '1';
 						i := i+1;
-					end if;	
+					end if;
 					
 				when GND_STATE_END =>
 					--nothing to do, end of case, should have been reset by now
 				
 			end case;
 		end if;
+		TX_DATA_RDY <= valid_data;
 end process;		
 
 
 xDC_lvds_tranceivers : lvds_tranceivers
 port map(
-			CLK				=>		xCLK_40MHz,
+			CLK				=>		xCLK_COMS,
 			RST				=>		xCLR_ALL,
 			TX_DATA			=>		TX_DATA,
-			TX_CLK			=>		xCLK_40MHz,
+			TX_CLK			=>		xCLK_COMS,
 			RX_ALIGN			=>		RX_ALIGN_BITSLIP,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
 			RX_CLK			=>		xRX_LVDS_CLK,
 			TX_LVDS_DATA	=>		xTX_LVDS_DATA,
-			TX_DATA_RDY    =>		'1',
-			TX_BUF_FULL 	=> 	open,
-			RX_BUF_EMPTY	=> 	open,
+			TX_DATA_RDY    =>		TX_DATA_RDY,
+			TX_BUF_FULL 	=> 	TX_BUF_FULL,
+			RX_BUF_EMPTY	=> 	RX_BUF_EMPTY,
 			RX_DATA			=>		RX_DATA,
 			TX_OUTCLK		=>		xTX_LVDS_CLK,
 			RX_OUTCLK		=>		RX_OUTCLK);	
+
+
 
 end Behavioral;

@@ -18,7 +18,7 @@ entity lvds_cdr is
 		-- Input ports
 		reset 	: in  std_logic;
 		enable	: in  std_logic;
-		sys_clk	: in  std_logic;
+		base_clk	: in  std_logic;
 		lvds_clk	: in  std_logic := '0';
 		lvds_data	: in  std_logic := '0';
 
@@ -63,15 +63,16 @@ signal local_rx_clk 	:  std_logic;
 signal local_rx_clk_q	:  std_logic;
 signal rx_fastclk_q	:  std_logic;
 
-signal coarse_pd_ena 	:  std_logic;
-signal coarse_pd_out 	:  std_logic;
+signal coarse_pd_out 	:  std_logic := '0';
+signal coarse_pd_done	:  std_logic := '0';
 
 begin
 
 rx_clk <= local_rx_clk;
 
-process(reset, locked, enable, phasedone, PD_STATE, local_rx_clk) is 
+cdr_state : process(reset, locked, enable, phasedone, PD_STATE, base_clk) is 
 	-- Declaration(s) 
+	variable coarse_pd_result 	:  std_logic;
 	variable history_n 	: integer range 0 to 255;
 	variable history_reg 	: std_logic_vector(15 downto 0);
 	variable history_state 	: integer range -31 to 31;
@@ -86,7 +87,7 @@ begin
 	elsif(phasedone = '0' and PD_STATE = WAIT_FOR_PHASE_CHANGE) then
 		phasestep <= '0';
 		PD_STATE <= CHECK_PHASE_READY;
-	elsif(rising_edge(local_rx_clk)) then
+	elsif(rising_edge(base_clk)) then
 		case PD_STATE is
 			when WAIT_FOR_LOCK =>
 				if locked = '1' then
@@ -98,9 +99,12 @@ begin
 				end if;
 			when MEASURE_PHASE =>
 				-- coarse_pd d-flipflop will be measuring the phase on this clock cycle.
-				PD_STATE <= ADJUST_PHASE;
+				coarse_pd_result := coarse_pd_out;
+				if coarse_pd_done = '1' then
+					PD_STATE <= ADJUST_PHASE;
+				end if;
 			when ADJUST_PHASE =>
-				if coarse_pd_out = '0' then 
+				if coarse_pd_result = '0' then 
 					phaseupdown <= '1'; 	-- move up if the input is 0 at the edge, or move down.
 				else
 					phaseupdown <= '0';
@@ -134,27 +138,30 @@ begin
 	end if;
 end process; 
 
-coarse_pd_ena <= '1' when PD_STATE = MEASURE_PHASE else '0';
 
--- Instantiating DFFE
-	coarse_pd : DFFE
-	port map (
-			d => lvds_clk,
-			clk => local_rx_clk,
-			clrn => '1',
-			prn => '1',
-			ena => coarse_pd_ena,
-			q => coarse_pd_out
-			);
+coarse_pd : process(local_rx_clk,reset) is
+begin
+	if (reset = '1') then
+		coarse_pd_done <= '0';
+	elsif(rising_edge(local_rx_clk)) then
+		if PD_STATE = MEASURE_PHASE then
+			coarse_pd_out <= lvds_clk;
+			coarse_pd_done <= '1';
+		else
+			coarse_pd_done <= '0';
+		end if;
+	end if;
+end process;
+
 
 
 altpll_rx_phaseshift_inst : altpll_rx_phaseshift 
 	PORT MAP (
-		inclk0	 => sys_clk,
+		inclk0	 => base_clk,
 		phasecounterselect	 => phasecounterselect,
 		phasestep	 => phasestep,
 		phaseupdown	 => phaseupdown,
-		scanclk	 => sys_clk,
+		scanclk	 => base_clk,
 		c0	 => local_rx_clk,
 		c1	 => local_rx_clk_q,
 		c2	 => rx_fastclk,

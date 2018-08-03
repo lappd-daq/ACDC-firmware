@@ -99,7 +99,7 @@ component lvds_cdr
 		-- Input ports
 		reset 	: in  std_logic;
 		enable	: in  std_logic;
-		sys_clk	: in  std_logic;
+		base_clk	: in  std_logic;
 		lvds_clk	: in  std_logic := '0';
 		lvds_data	: in  std_logic := '0';
 
@@ -298,7 +298,7 @@ cdr : lvds_cdr
 		-- Input ports
 		reset => RST,
 		enable => cdr_enable,
-		sys_clk => CLK,
+		base_clk => CLK,
 		lvds_clk	=> RX_CLK,
 		lvds_data => RX_LVDS_DATA,
 
