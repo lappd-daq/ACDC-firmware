@@ -35,10 +35,13 @@ ENTITY lvds_tranceivers IS
 		RX_CLK 			:  IN  STD_LOGIC;
 		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
 		TX_DATA_RDY		:  IN  STD_LOGIC;
+		REMOTE_UP		:  OUT STD_LOGIC;
+		REMOTE_VALID	:  OUT STD_LOGIC;
 		TX_BUF_FULL		:  out std_logic;
 		RX_BUF_EMPTY	:  out std_logic;
 		TX_OUTCLK 		:  OUT  STD_LOGIC;
 		RX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_ERROR			:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0); --coding error & dispairty error
 		RX_DATA 			:  OUT  STD_LOGIC_VECTOR(7 DOWNTO 0);
 		TX_LVDS_DATA 	:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0)
 	);
@@ -172,6 +175,10 @@ signal kin_ena 	:	std_logic;		-- Data in is a special code, not all are legal.
 signal ein_ena 	:	std_logic;		-- Data (or code) input enable
 signal din_ena 	:	std_logic;		-- Data (or code) input enable
 signal dout_val 	:	std_logic;		-- data out valid
+signal dout_dat	:  std_logic_vector(7 downto 0);
+signal dout_k		:  std_logic;		-- data is a k-code
+signal dout_kerr	:  std_logic;		-- coding error
+signal dout_rderr	:  std_logic;		-- dispairty error
 
 
 signal cdr_enable : std_logic;	-- enable the clock alignment module.
@@ -182,41 +189,13 @@ signal tx_fifo_out		:  std_logic_vector(15 downto 0);
 signal tx_fifo_empty		:  std_logic;
 signal rx_fifo_empty		:  std_logic;
 signal rx_fifo_rdreq		:  std_logic;
-signal rx_fifo_in			:  std_logic_vector(7 downto 0);
+
 
 
 
 BEGIN 
 
-
-
-
---Align RX Clock
-process(CLK)
-begin
-	if RST = '1' or LINK_STATE /= UP then
-		RX_ALIGNMENT_STATE <= RESET;
-	else
-		case RX_ALIGNMENT_STATE is 
-			when RESET =>
-				if (LINK_STATE <= UP) or (ALIGNED_RX_CLK_READY = '1') then
-					RX_ALIGNMENT_STATE <= ALIGNING;
-				end if;
-			when ALIGNING =>
-				if ALIGNED_RX_CLK_READY = '1' then
-					RX_ALIGNMENT_STATE <= READY;
-				end if;
-			when READY =>
-				if ALIGNED_RX_CLK_READY = '0' then
-					RX_ALIGNMENT_STATE <= ALIGNING;
-				end if;
-			when others =>
-				-- should never happen
-				RX_ALIGNMENT_STATE <= RESET;
-		end case;
-	end if;
-end process;
-
+-- Send side:
 
 tx_buf : tx_fifo
 	PORT MAP(
@@ -231,8 +210,26 @@ tx_buf : tx_fifo
 		wrfull	=> TX_BUF_FULL 
 	);
 
+-- Depending on the RX link state, send a different K-Code
+process(RX_CLK_LOCAL, RST)
+begin
+	if RST = '1' then
+		LINK_STATE_OUT <= K28_1&K28_1;
+		--TX_DATA <= ALIGN_WORD_16;
+	elsif rising_edge(RX_CLK_LOCAL) then
+		if (LINK_STATE /= UP) then
+			LINK_STATE_OUT <= K28_1&K28_1;
+		else
+			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
+				LINK_STATE_OUT <= K28_7&K28_7;
+			else -- link is up and data is valid
+				LINK_STATE_OUT <= K28_5&K28_5;
+			end if;
+		end if;
+	end if;
+end process;
+
 -- either send k-codes or data, depending on the fifo.
--- May want to check if the other side is OK, first.
 tx_enc_input : process(RST, TX_CLK)
 begin
 	if RST = '1' then
@@ -291,24 +288,10 @@ PORT MAP(tx_inclock => TX_CLK,
 		 tx_outclock => TX_OUTCLK,
 		 tx_out => TX_LVDS_DATA);
 
-cdr_enable <= '0' when RX_ALIGNMENT_STATE = RESET else '1';
-cdr : lvds_cdr
-	PORT MAP
-	(
-		-- Input ports
-		reset => RST,
-		enable => cdr_enable,
-		base_clk => CLK,
-		lvds_clk	=> RX_CLK,
-		lvds_data => RX_LVDS_DATA,
+		 
+-- Receive Side: 
 
-		-- Output ports
-		rx_clk => ALIGNED_RX_CLK,
-		rx_fastclk => ALIGNED_RX_FASTCLK,
-		rx_clk_ready => ALIGNED_RX_CLK_READY
-	);
-
-
+-- Get Bits from serdes
 lvds_rx : altlvds_rx0
 PORT MAP(rx_data_align => RX_ALIGN,
 		 rx_inclock => ALIGNED_RX_CLK,
@@ -338,6 +321,50 @@ begin
 	end if;
 end process;
 
+
+--Align RX Clock
+process(CLK)
+begin
+	if RST = '1' or LINK_STATE /= UP then
+		RX_ALIGNMENT_STATE <= RESET;
+	else
+		case RX_ALIGNMENT_STATE is 
+			when RESET =>
+				if (LINK_STATE <= UP) or (ALIGNED_RX_CLK_READY = '1') then
+					RX_ALIGNMENT_STATE <= ALIGNING;
+				end if;
+			when ALIGNING =>
+				if ALIGNED_RX_CLK_READY = '1' then
+					RX_ALIGNMENT_STATE <= READY;
+				end if;
+			when READY =>
+				if ALIGNED_RX_CLK_READY = '0' then
+					RX_ALIGNMENT_STATE <= ALIGNING;
+				end if;
+			when others =>
+				-- should never happen
+				RX_ALIGNMENT_STATE <= RESET;
+		end case;
+	end if;
+end process;
+
+cdr_enable <= '0' when RX_ALIGNMENT_STATE = RESET else '1';
+cdr : lvds_cdr
+	PORT MAP
+	(
+		-- Input ports
+		reset => RST,
+		enable => cdr_enable,
+		base_clk => CLK,
+		lvds_clk	=> RX_CLK,
+		lvds_data => RX_LVDS_DATA,
+
+		-- Output ports
+		rx_clk => ALIGNED_RX_CLK,
+		rx_fastclk => ALIGNED_RX_FASTCLK,
+		rx_clk_ready => ALIGNED_RX_CLK_READY
+	);
+
 din_ena <= '1' when RX_ALIGNMENT_STATE = READY else '0';
 
 rx_dec : decoder_8b10b
@@ -352,47 +379,58 @@ rx_dec : decoder_8b10b
 		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
 		din_rd => RX_RDreg,		-- running disparity input
 		dout_val => dout_val,		-- data out valid
-		dout_dat => rx_fifo_in(7 downto 0),		-- data out
-		dout_k => open,		-- special code
-		dout_kerr => open,		-- coding mistake detected
-		dout_rderr => open,		-- running disparity mistake detected
+		dout_dat => dout_dat(7 downto 0),		-- data out
+		dout_k => dout_k,		-- special code
+		dout_kerr => dout_kerr,		-- coding mistake detected
+		dout_rderr => dout_rderr,		-- running disparity mistake detected
 		dout_rdcomb => open,		-- running disparity output (comb)
 		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
 
+		
+RX_ERROR  <= dout_kerr & dout_rderr;
+		
+rx_fifo_rdreq <= (NOT rx_fifo_empty) and (NOT RST);
 
 rx_buf : rx_fifo
 	PORT MAP(
 		aclr	=> RST,
-		data	=> rx_fifo_in,
+		data	=> dout_dat,
 		rdclk	=> CLK,
 		rdreq	=> rx_fifo_rdreq,
 		wrclk	=> RX_CLK_LOCAL,
 		wrreq	=> dout_val,
 		q		=> RX_DATA,
 		rdempty	=> rx_fifo_empty,
-		wrfull	=> TX_BUF_FULL 
+		wrfull	=> open  -- should probably include backpressure.
 	);
 
-rx_fifo_rdreq <= (NOT rx_fifo_empty) and (NOT RST);
 
--- Check link encoding state (may want to enable the fifo input with this)
+
 process(RX_CLK_LOCAL, RST)
 begin
 	if RST = '1' then
-		LINK_STATE_OUT <= K28_1&K28_1;
-		--TX_DATA <= ALIGN_WORD_16;
+		REMOTE_UP <= '0';
+		REMOTE_VALID <= '0';
 	elsif rising_edge(RX_CLK_LOCAL) then
-		if (LINK_STATE /= UP) then
-			LINK_STATE_OUT <= K28_1&K28_1;
-		else
-			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
-				LINK_STATE_OUT <= K28_7&K28_7;
-			else -- link is up and data is valid
-				LINK_STATE_OUT <= K28_5&K28_5;
-			end if;
+		if (dout_k = '1') then
+			case dout_dat is
+				when K28_1 =>  -- link down
+							REMOTE_UP <= '0';
+							REMOTE_VALID <= '0';
+				when K28_7 =>  -- link up but decoder doesn't see valid data
+							REMOTE_UP <= '1';
+							REMOTE_VALID <= '0';
+				when K28_5 =>  -- link is up and data is valid
+							REMOTE_UP <= '1';
+							REMOTE_VALID <= '1';
+				when others =>  -- Something unexpected
+							REMOTE_UP <= '0';
+							REMOTE_VALID <= '0';
+			end case;
 		end if;
 	end if;
 end process;
+
 
 RX_OUTCLK <= RX_CLK_LOCAL;
 

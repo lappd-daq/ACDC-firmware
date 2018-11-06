@@ -90,6 +90,9 @@ signal CHECK_WORD					:	std_logic_vector(7 downto 0);
 signal TX_DATA						: 	std_logic_vector(15 downto 0);
 signal ALIGN_SUCCESS				:  std_logic := '0';
 signal GOOD_DATA					:  std_logic_vector(15 downto 0);
+signal REMOTE_UP					:  std_logic;
+signal REMOTE_VALID				:  std_logic;
+signal RX_ERROR					:  std_logic_vector(1 DOWNTO 0);
 
 signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
@@ -127,11 +130,14 @@ component lvds_tranceivers
 		RX_LVDS_DATA 	:  IN  STD_LOGIC;
 		RX_CLK 			:  IN  STD_LOGIC;
 		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
-		TX_DATA_RDY 	:  IN  STD_LOGIC;
+		TX_DATA_RDY		:  IN  STD_LOGIC;
+		REMOTE_UP		:  OUT STD_LOGIC;
+		REMOTE_VALID	:  OUT STD_LOGIC;
 		TX_BUF_FULL		:  out std_logic;
 		RX_BUF_EMPTY	:  out std_logic;
 		TX_OUTCLK 		:  OUT  STD_LOGIC;
 		RX_OUTCLK 		:  OUT  STD_LOGIC;
+		RX_ERROR			:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0); --coding error & dispairty error
 		RX_DATA 			:  OUT  STD_LOGIC_VECTOR(7 DOWNTO 0);
 		TX_LVDS_DATA 	:  OUT  STD_LOGIC_VECTOR(1 DOWNTO 0));
 end component;
@@ -144,6 +150,8 @@ end component;
 
 
 begin
+
+ALIGN_SUCCESS		<= '1' when (REMOTE_VALID = '1' AND RX_ERROR = "00") else '0';
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
 xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED(2);
@@ -196,59 +204,58 @@ begin
 		GET_CC_INSTRUCT_STATE <= IDLE;
 		
 	elsif falling_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
-		case GET_CC_INSTRUCT_STATE is
-			
-			when IDLE =>
-				i := 0;
-				INSTRUCT_READY <= '0';
-				ready_flag <= '0';
-				RX_BUSY <= '0';
-				if RX_DATA = STARTWORD_8a then
-					RX_BUSY <= '1';
-					GET_CC_INSTRUCT_STATE <= ONDECK;
-				end if;
-			
-			when ONDECK => 
-				if RX_DATA = STARTWORD_8b then
-					GET_CC_INSTRUCT_STATE <= CATCH0;
-				else	
-					GET_CC_INSTRUCT_STATE <= IDLE;
-				end if;
-				
-			when CATCH0 =>
-				CC_INSTRUCTION(31 downto 24) 	<= RX_DATA;
-				GET_CC_INSTRUCT_STATE <= CATCH1;
-			when CATCH1 =>
-				CC_INSTRUCTION(23 downto 16) 	<= RX_DATA;
-				GET_CC_INSTRUCT_STATE <= CATCH2;
-			when CATCH2 =>
-				CC_INSTRUCTION(15 downto 8) 	<= RX_DATA;
-				GET_CC_INSTRUCT_STATE <= CATCH3;
-			when CATCH3 =>
-				CC_INSTRUCTION(7 downto 0) 	<= RX_DATA;
-				ready_flag <= '1';
-				GET_CC_INSTRUCT_STATE <= DELAY;
-			
-			when DELAY =>
-				CC_INSTRUCTION_FULL <= CC_INSTRUCTION;
-				if i >1 then
+		if RX_BUF_EMPTY /= '1' then
+			case GET_CC_INSTRUCT_STATE is
+				when IDLE =>
 					i := 0;
-					GET_CC_INSTRUCT_STATE <= READY;
-				else
-					i := i+1;
-				end if;
-				
-			when READY =>
-				INSTRUCT_READY <= '1';
-				i := i + 1;
-				if i = 10 then
-					i := 0;
+					INSTRUCT_READY <= '0';
+					ready_flag <= '0';
 					RX_BUSY <= '0';
-					GET_CC_INSTRUCT_STATE <= IDLE;
-
-				end if;
-		end case;
-
+					if RX_DATA = STARTWORD_8a then
+						RX_BUSY <= '1';
+						GET_CC_INSTRUCT_STATE <= ONDECK;
+					end if;
+				
+				when ONDECK => 
+					if RX_DATA = STARTWORD_8b then
+						GET_CC_INSTRUCT_STATE <= CATCH0;
+					else	
+						GET_CC_INSTRUCT_STATE <= IDLE;
+					end if;
+					
+				when CATCH0 =>
+					CC_INSTRUCTION(31 downto 24) 	<= RX_DATA;
+					GET_CC_INSTRUCT_STATE <= CATCH1;
+				when CATCH1 =>
+					CC_INSTRUCTION(23 downto 16) 	<= RX_DATA;
+					GET_CC_INSTRUCT_STATE <= CATCH2;
+				when CATCH2 =>
+					CC_INSTRUCTION(15 downto 8) 	<= RX_DATA;
+					GET_CC_INSTRUCT_STATE <= CATCH3;
+				when CATCH3 =>
+					CC_INSTRUCTION(7 downto 0) 	<= RX_DATA;
+					ready_flag <= '1';
+					GET_CC_INSTRUCT_STATE <= DELAY;
+				
+				when DELAY =>
+					CC_INSTRUCTION_FULL <= CC_INSTRUCTION;
+					if i >1 then
+						i := 0;
+						GET_CC_INSTRUCT_STATE <= READY;
+					else
+						i := i+1;
+					end if;
+					
+				when READY =>
+					INSTRUCT_READY <= '1';
+					i := i + 1;
+					if i = 10 then
+						i := 0;
+						RX_BUSY <= '0';
+						GET_CC_INSTRUCT_STATE <= IDLE;
+					end if;
+			end case;
+		end if;
 	--elsif rising_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
 		--CC_INSTRUCTION_READY <= CC_INSTRUCTION;
 		--INSTRUCT_READY_REGISTERED <= INSTRUCT_READY;
@@ -478,20 +485,22 @@ end process;
 xDC_lvds_tranceivers : lvds_tranceivers
 port map(
 			CLK				=>		xCLK_COMS,
-			RST				=>		xCLR_ALL,
-			TX_DATA			=>		TX_DATA,
+			RST				=>		xCLR_ALL,	
 			TX_CLK			=>		xCLK_COMS,
 			RX_ALIGN			=>		RX_ALIGN_BITSLIP,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
 			RX_CLK			=>		xRX_LVDS_CLK,
-			TX_LVDS_DATA	=>		xTX_LVDS_DATA,
+			TX_DATA			=>		TX_DATA,
 			TX_DATA_RDY    =>		TX_DATA_RDY,
+			REMOTE_UP		=>		REMOTE_UP,
+			REMOTE_VALID	=> 	REMOTE_VALID,
 			TX_BUF_FULL 	=> 	TX_BUF_FULL,
 			RX_BUF_EMPTY	=> 	RX_BUF_EMPTY,
 			RX_DATA			=>		RX_DATA,
 			TX_OUTCLK		=>		xTX_LVDS_CLK,
-			RX_OUTCLK		=>		RX_OUTCLK);	
-
+			RX_OUTCLK		=>		RX_OUTCLK,
+			RX_ERROR			=>		RX_ERROR,
+			TX_LVDS_DATA	=>		xTX_LVDS_DATA);	
 
 
 end Behavioral;
