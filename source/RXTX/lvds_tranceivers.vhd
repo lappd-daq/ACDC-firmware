@@ -168,8 +168,8 @@ signal ALIGNED_RX_CLK_READY 	:  std_logic;
 
 -- 8b/10b sigals
 signal tx_enc_data				:  std_logic_vector(15 downto 0); 	-- input to the encoder, either code or data
-signal TX_RDcomb	: std_logic;
-signal TX_RDreg	: std_logic;
+signal TX_RDreg0	: std_logic;
+signal TX_RDreg1	: std_logic;
 signal RX_RDreg	: std_logic;
 signal kin_ena 	:	std_logic;		-- Data in is a special code, not all are legal.	
 signal ein_ena 	:	std_logic;		-- Data (or code) input enable
@@ -264,8 +264,8 @@ tx_enc0 : encoder_8b10b
 		ein_rd => TX_RDreg,		-- running disparity input
 		eout_val => open,		-- data out is valid
 		eout_dat => TX_DATA10(9 downto 0),		-- data out
-		eout_rdcomb => TX_RDcomb,		-- running disparity output (comb)
-		eout_rdreg => open);		-- running disparity output (reg)
+		eout_rdcomb => open,		-- running disparity output (comb)
+		eout_rdreg => TX_RDreg0);		-- running disparity output (reg)
 
 
 tx_enc1 : encoder_8b10b
@@ -280,7 +280,7 @@ tx_enc1 : encoder_8b10b
 		eout_val => open,		-- data out is valid
 		eout_dat => TX_DATA10(19 downto 10),		-- data out
 		eout_rdcomb => open,		-- running disparity output (comb)
-		eout_rdreg => TX_RDreg);		-- running disparity output (reg)
+		eout_rdreg => TX_RDreg1);		-- running disparity output (reg)
 
 lvds_tx : altlvds_tx0
 PORT MAP(tx_inclock => TX_CLK,
