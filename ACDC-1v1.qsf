@@ -884,7 +884,6 @@ set_global_assignment -name VHDL_FILE source/Definition_Pool.vhd
 set_global_assignment -name BDF_FILE source/ACDC_top_level.bdf
 set_global_assignment -name QIP_FILE altpll3.qip
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/VCDL_Monitor_Loop.vhd
-set_global_assignment -name QIP_FILE source/RXTX/altpll_rx_phaseshift.qip
 set_global_assignment -name VHDL_FILE source/RXTX/lvds_cdr.vhd
 set_global_assignment -name QIP_FILE source/RXTX/tx_fifo.qip
 set_global_assignment -name QIP_FILE source/RXTX/rx_fifo.qip
