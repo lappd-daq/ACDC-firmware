@@ -168,63 +168,15 @@ begin  -- Behavioral
 process(xPLL_MODE)
 begin
 	case xPLL_MODE is
-		when "11" =>
-      --24 MHz and 40 on channel 5
-		iREGISTER(0)(31 downto 0) <= x"011E0320";
-		iREGISTER(1)(31 downto 0) <= x"011E0301";
-		iREGISTER(2)(31 downto 0) <= x"011E0302";
-		iREGISTER(3)(31 downto 0) <= x"011E0323";
-		iREGISTER(4)(31 downto 0) <= x"01140314";
-		iREGISTER(5)(31 downto 0) <= x"FC000BE5";
-		iREGISTER(6)(31 downto 0) <= x"042E02E6";
-		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
-		iREGISTER(8)(31 downto 0) <= x"20009D98";
-		
-		when "10" =>
-      --32 MHz and 40 on channel 5
-		iREGISTER(0)(31 downto 0) <= x"01160320";
-		iREGISTER(1)(31 downto 0) <= x"01160301";
-		iREGISTER(2)(31 downto 0) <= x"01160302";
-		iREGISTER(3)(31 downto 0) <= x"01160303";
-		iREGISTER(4)(31 downto 0) <= x"01140314";
-		iREGISTER(5)(31 downto 0) <= x"10000BE5";
-		iREGISTER(6)(31 downto 0) <= x"042E02E6";
-		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
-		iREGISTER(8)(31 downto 0) <= x"20009D98";
-			
-		when "01" =>
-      --36 MHz and 40 on channel 5
-		iREGISTER(0)(31 downto 0) <= x"010E0320";
-		iREGISTER(1)(31 downto 0) <= x"010E0301";
-		iREGISTER(2)(31 downto 0) <= x"010E0302";
-		iREGISTER(3)(31 downto 0) <= x"010E0323";
-		iREGISTER(4)(31 downto 0) <= x"01120314";
-		iREGISTER(5)(31 downto 0) <= x"FC040BE5";
-		iREGISTER(6)(31 downto 0) <= x"042E04B6";
-		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
-		iREGISTER(8)(31 downto 0) <= x"20009D98";	
-		
-		when "00" =>
-		iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
-		iREGISTER(1)(31 downto 0) <= x"01140301";
-		iREGISTER(2)(31 downto 0) <= x"01140302";
-		iREGISTER(3)(31 downto 0) <= x"01140303";
-		iREGISTER(4)(31 downto 0) <= x"01140314";
-		iREGISTER(5)(31 downto 0) <= x"10000BE5";
-		iREGISTER(6)(31 downto 0) <= x"044E02E6";
-		iREGISTER(7)(31 downto 0) <= x"BD913DB7";
-		iREGISTER(8)(31 downto 0) <= x"20009D98";	
-
-		
 		when others =>
-		iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
-		iREGISTER(1)(31 downto 0) <= x"01140301";
-		iREGISTER(2)(31 downto 0) <= x"01140302";
-		iREGISTER(3)(31 downto 0) <= x"01140303";
-		iREGISTER(4)(31 downto 0) <= x"01140314";
-		iREGISTER(5)(31 downto 0) <= x"10000BE5";
-		iREGISTER(6)(31 downto 0) <= x"044E02E6";
-		iREGISTER(7)(31 downto 0) <= x"BD913DB7";
+		iREGISTER(0)(31 downto 0) <= x"EB060320"; --014002e0 to use secondary ref
+		iREGISTER(1)(31 downto 0) <= x"EB060321";
+		iREGISTER(2)(31 downto 0) <= x"EB060302";
+		iREGISTER(3)(31 downto 0) <= x"EB060303";
+		iREGISTER(4)(31 downto 0) <= x"EB060314";
+		iREGISTER(5)(31 downto 0) <= x"10100BE5";
+		iREGISTER(6)(31 downto 0) <= x"04AE0106";
+		iREGISTER(7)(31 downto 0) <= x"BD99FDE7";
 		iREGISTER(8)(31 downto 0) <= x"20009D98";	
 
 	end case;
