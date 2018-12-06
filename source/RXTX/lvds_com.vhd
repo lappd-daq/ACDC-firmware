@@ -143,7 +143,7 @@ signal SYSTEM_START				: std_logic;
 
 begin
 
-ALIGN_SUCCESS		<= '1' when (REMOTE_VALID = '1' AND RX_ERROR = '0') else '0';
+ALIGN_SUCCESS		<= '1' when (REMOTE_VALID = '1') else '0';
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
 xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED(2);
