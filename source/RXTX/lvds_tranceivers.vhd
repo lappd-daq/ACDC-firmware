@@ -29,7 +29,7 @@ ENTITY lvds_tranceivers IS
 	(
 		CLK 				: 	IN  STD_LOGIC;
 		RST 				:  IN  STD_LOGIC;
-		TX_CLK 			:  IN  STD_LOGIC;
+		CLK_COMS			:  IN  STD_LOGIC;
 		RX_LVDS_DATA 	:  IN  STD_LOGIC;
 		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
 		TX_DATA_RDY		:  IN  STD_LOGIC;
@@ -126,6 +126,7 @@ COMPONENT uart
 		tx_data			:	 IN STD_LOGIC_VECTOR(BITS-1 DOWNTO 0);
 		tx_data_valid	:	 IN STD_LOGIC;
 		tx_data_ack		:	 OUT STD_LOGIC;
+		tx_ready			:  OUT STD_LOGIC;
 		txd				:	 OUT STD_LOGIC;
 		rx_data			:	 OUT STD_LOGIC_VECTOR(BITS-1 DOWNTO 0);
 		rx_data_fresh	:	 OUT STD_LOGIC;
@@ -133,27 +134,21 @@ COMPONENT uart
 	);
 END COMPONENT;
 
-TYPE TX_STATE_TYPE is (RESET, READY, UART_BUSY_LSB, UART_BUSY);
+TYPE TX_STATE_TYPE is (RESET, READY, UART_WAIT_LSB, UART_WAIT, UART_BUSY_LSB, UART_BUSY);
 signal TX_STATE		: TX_STATE_TYPE;
 
 signal tx_data_ack	:  std_logic;		-- data acknowledge from the UART
+signal tx_ready			:  std_logic;
 signal rx_data_fresh :  std_logic;		-- new data from the UART
 
-type LINK_STATE_TYPE is (DOWN, CHECKING, UP);
+type LINK_STATE_TYPE is (DOWN, CHECKING, UP, ERROR);
 signal LINK_STATE : LINK_STATE_TYPE;
-
-type RX_ALIGNMENT_TYPE is (RESET, ALIGNING, READY);
-signal RX_ALIGNMENT_STATE : RX_ALIGNMENT_TYPE;
+signal REMOTE_LINK_STATE	:  LINK_STATE_TYPE;
 
 signal LINK_STATE_OUT				:  std_logic_vector(7 downto 0);
 
-signal RX_CLK_LOCAL					:  std_logic := 'X';
 signal RX_DATA10						:	std_logic_vector(9 downto 0);
 signal TX_DATA10						: 	std_logic_vector(9 downto 0);
-
-signal ALIGNED_RX_CLK 			:  std_logic;
-signal ALIGNED_RX_FASTCLK 		:  std_logic;
-signal ALIGNED_RX_CLK_READY 	:  std_logic;
 
 -- 8b/10b sigals
 signal tx_enc_data				:  std_logic_vector(7 downto 0); 	-- input to the encoder, either code or data
@@ -161,7 +156,6 @@ signal TX_RDreg	: std_logic;
 signal RX_RDreg	: std_logic;
 signal kin_ena 	:	std_logic;		-- Data in is a special code, not all are legal.	
 signal ein_ena 	:	std_logic;		-- Data (or code) input enable
-signal din_ena 	:	std_logic;		-- Data (or code) input enable
 signal eout_val	:  std_logic;		-- Encoder output valid.
 signal dout_val 	:	std_logic;		-- data out valid
 signal dout_dat	:  std_logic_vector(7 downto 0);
@@ -188,7 +182,7 @@ tx_buf : tx_fifo
 	PORT MAP(
 		aclr	=> RST,
 		data	=> TX_DATA,
-		rdclk	=> CLK,
+		rdclk	=> CLK_COMS,
 		rdreq	=> tx_fifo_rdreq,
 		wrclk	=> CLK,
 		wrreq	=> TX_DATA_RDY,
@@ -197,26 +191,9 @@ tx_buf : tx_fifo
 		wrfull	=> TX_BUF_FULL 
 	);
 
--- Depending on the RX link state, send a different K-Code
-process(CLK, RST)
-begin
-	if RST = '1' then
-		LINK_STATE_OUT <= K28_1;
-	elsif rising_edge(RX_CLK_LOCAL) then
-		if (LINK_STATE /= UP) then
-			LINK_STATE_OUT <= K28_1;
-		else
-			if dout_val = '0' then  -- link is up, but decoder doesn't see valid data
-				LINK_STATE_OUT <= K28_7;
-			else -- link is up and data is valid
-				LINK_STATE_OUT <= K28_5;
-			end if;
-		end if;
-	end if;
-end process;
 
 -- either send k-codes or data, depending on the fifo.
-tx_enc_input : process(RST, CLK)
+tx_enc_input : process(RST, CLK_COMS)
 variable tx_fifo_out_msb	: std_logic_vector(7 downto 0);
 begin
 	if RST = '1' then
@@ -226,7 +203,7 @@ begin
 		ein_ena <= '0';
 		tx_fifo_rdreq <= '0';
 		tx_fifo_out_msb := (others => '0');
-	elsif rising_edge(CLK) then
+	elsif rising_edge(CLK_COMS) then
 		case TX_STATE is
 			when RESET =>
 				TX_STATE <= READY;
@@ -236,37 +213,43 @@ begin
 				tx_fifo_rdreq <= '0';
 				tx_fifo_out_msb := (others => '0');
 			when READY =>
-				if tx_fifo_empty /= '0' then
+				if tx_fifo_empty = '0' then
 					tx_fifo_out_msb := tx_fifo_out(15 downto 8);
 					tx_enc_data <= tx_fifo_out(7 downto 0);
 					kin_ena <= '0';
 					ein_ena <= '1';
 					tx_fifo_rdreq <= '1';  --acknowlege fifo read
-					TX_STATE <= UART_BUSY_LSB;
+					TX_STATE <= UART_WAIT_LSB;
 				else
 					tx_enc_data <= LINK_STATE_OUT;
 					kin_ena <= '1';
 					ein_ena <= '1';
 					tx_fifo_rdreq <= '0';
-					TX_STATE <= UART_BUSY;  --only send one byte k-codes.
+					TX_STATE <= UART_WAIT;  --only send one byte k-codes.
+				end if;
+			when UART_WAIT_LSB =>
+				tx_fifo_rdreq <= '0';
+				kin_ena <= '0';
+				ein_ena <= '0';
+				if tx_data_ack = '1' then -- send the msb
+					TX_STATE <= UART_BUSY_LSB;
 				end if;
 			when UART_BUSY_LSB =>
-				tx_fifo_rdreq <= '0';
-				if tx_data_ack = '1' then -- send the msb
+				if tx_ready = '1' then
 					tx_enc_data <= tx_fifo_out_msb;
 					kin_ena <= '0';
 					ein_ena <= '1';
-					TX_STATE <= UART_BUSY;
-				else
-					kin_ena <= '0';
-					ein_ena <= '0';
-					TX_STATE <= UART_BUSY_LSB;
+					TX_STATE <= UART_WAIT;
 				end if;
-			when UART_BUSY =>  -- last byte (either code or msb of data)
+			when UART_WAIT =>  -- last byte (either code or msb of data)
 				tx_fifo_rdreq <= '0';
 				kin_ena <= '0';
 				ein_ena <= '0';
 				if tx_data_ack = '1' then
+					TX_STATE <= UART_BUSY;
+				end if;
+			when UART_BUSY =>
+				if tx_ready = '1' then
 					TX_STATE <= READY;
 				end if;
 			when others =>
@@ -279,7 +262,7 @@ end process;
 tx_enc0 : encoder_8b10b
 	GENERIC MAP( METHOD => 0 )
 	PORT MAP(
-		clk => CLK,
+		clk => CLK_COMS,
 		rst => RST,
 		kin_ena => kin_ena,		-- Data in is a special code, not all are legal.	
 		ein_ena => ein_ena,		-- Data (or code) input enable
@@ -294,15 +277,16 @@ tx_enc0 : encoder_8b10b
 uart0 : uart
 	GENERIC map 
 	(	BITS => 10,
-		CLK_HZ	=> 40000000,  -- may want to add a faster clock for the uart.
+		CLK_HZ	=> 160000000,
 		BAUD => 10000000)
 	PORT map
 	(
-		clk => CLK,
+		clk => CLK_COMS,
 		rst => RST,
 		tx_data => TX_DATA10,
 		tx_data_valid => eout_val,
 		tx_data_ack	=> tx_data_ack,
+		tx_ready	=> tx_ready,
 		txd => TX_LVDS_DATA,
 		rx_data => RX_DATA10,
 		rx_data_fresh => rx_data_fresh,
@@ -317,9 +301,9 @@ rx_dec : decoder_8b10b
 		KERR => 1,
 		METHOD => 0)
 	PORT MAP(
-		clk => CLK,
+		clk => CLK_COMS,
 		rst => RST,
-		din_ena => din_ena,		-- 10b data ready
+		din_ena => rx_data_fresh,		-- 10b data ready
 		din_dat => RX_DATA10(9 downto 0),		-- 10b data input
 		din_rd => RX_RDreg,		-- running disparity input
 		dout_val => dout_val,		-- data out valid
@@ -330,7 +314,55 @@ rx_dec : decoder_8b10b
 		dout_rdcomb => open,		-- running disparity output (comb)
 		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
 
-		
+--Check if Link is disconnected
+process(CLK_COMs, RST)
+variable counter 	: integer range 200000000 downto 0;
+variable dff1,dff2,dff3		: std_logic;
+variable edge		: std_logic;
+begin
+	if RST = '1' then
+		dff1		:= '0';
+		dff2		:= '0';
+		dff3		:= '0';
+		edge		:= dff2 xor dff3;
+		counter	:= 0;
+		LINK_STATE <= DOWN;
+		LINK_STATE_OUT <= K28_1;
+	elsif rising_edge(CLK_COMs) then
+		edge 	:= dff2 xor dff3;
+		dff3  := dff2;
+		dff2	:= dff1;
+		dff1  := RX_LVDS_DATA;
+		case LINK_STATE is
+			when DOWN =>
+				if edge = '1' then
+					counter := 0;
+					LINK_STATE <= CHECKING;
+					LINK_STATE_OUT <=  K28_7;
+				else
+					LINK_STATE_OUT <= K28_1;
+				end if;
+			when others =>
+				if dout_val = '1' and dout_kerr = '0' then
+					counter := 0;
+					LINK_STATE <= UP;
+					LINK_STATE_OUT <= K28_5;
+				elsif dout_kerr = '1' or dout_rderr = '1' then
+					counter := 0;
+					LINK_STATE <= ERROR;
+					LINK_STATE_OUT <= K27_7;
+				else
+					counter := counter + 1;
+					if counter > 160000000 then -- check if we're past timeout
+						LINK_STATE <= DOWN;
+						LINK_STATE_OUT <=  K28_1;
+						counter := 0;
+					end if;
+				end if;
+		end case;
+	end if;
+end process;
+
 RX_ERROR  <= dout_kerr OR dout_rderr;
 		
 RX_DATA_RDY <= (NOT rx_fifo_empty);
@@ -341,31 +373,42 @@ rx_buf : rx_fifo
 		data	=> dout_dat,
 		rdclk	=> CLK,
 		rdreq	=> NOT rx_fifo_empty,
-		wrclk	=> CLK,
+		wrclk	=> CLK_COMS,
 		wrreq	=> dout_val,
 		q		=> RX_DATA,
 		rdempty	=> rx_fifo_empty,
 		wrfull	=> open  -- should probably include backpressure.
 	);
 
-process(CLK, RST)
+
+
+process(CLK_COMS, RST)
 begin
 	if RST = '1' then
 		REMOTE_UP <= '0';
 		REMOTE_VALID <= '0';
-	elsif rising_edge(CLK) then
-		if (dout_k = '1') then
+		REMOTE_LINK_STATE <= DOWN;
+	elsif rising_edge(CLK_COMS) then
+		if (dout_k = '1') and dout_val = '1' then
 			case dout_dat is
 				when K28_1 =>  -- link down
+							REMOTE_LINK_STATE <= DOWN;
 							REMOTE_UP <= '0';
 							REMOTE_VALID <= '0';
 				when K28_7 =>  -- link up but decoder doesn't see valid data
+							REMOTE_LINK_STATE <= CHECKING;
 							REMOTE_UP <= '1';
 							REMOTE_VALID <= '0';
 				when K28_5 =>  -- link is up and data is valid
+							REMOTE_LINK_STATE <= UP;
 							REMOTE_UP <= '1';
 							REMOTE_VALID <= '1';
+				when K27_7 =>
+							REMOTE_LINK_STATE <= ERROR;
+							REMOTE_UP <= '1';
+							REMOTE_VALID <= '0';
 				when others =>  -- Something unexpected
+							REMOTE_LINK_STATE <= ERROR;
 							REMOTE_UP <= '0';
 							REMOTE_VALID <= '0';
 			end case;

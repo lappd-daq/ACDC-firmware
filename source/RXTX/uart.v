@@ -23,7 +23,7 @@
 // baeckler - 02-16-2007
 ////////////////////////////////////////////////////////////////////
 
-module uart_tx (clk,rst,tx_data,tx_data_valid,tx_data_ack,txd);
+module uart_tx (clk,rst,tx_data,tx_data_valid,tx_data_ack,ready,txd);
 
 parameter BITS = 8;
 
@@ -32,6 +32,7 @@ input clk, rst;
 input [BITS-1:0] tx_data;
 input tx_data_valid;
 output tx_data_ack;
+output ready;
 
 parameter BAUD_DIVISOR = 868;
 parameter COUNT_WIDTH = $clog2(BAUD_DIVISOR);
@@ -58,29 +59,30 @@ always @(posedge clk) begin
 	end
 end
 
-reg ready;
+reg rdy;
 always @(posedge clk) begin
 	if (rst) begin
 		tx_shift <= 1; //{BITS'b00000000001};
-		ready <= 1'b1;
+		rdy <= 1'b1;
 	end
 	else begin		
-		if (!ready & sample_now) begin
+		if (!rdy & sample_now) begin
 			tx_shift <= {1'b0,tx_shift[BITS+2:1]};
 			tx_data_ack <= 1'b0;
-			ready <= ~|tx_shift[BITS+2:1];
+			rdy <= ~|tx_shift[BITS+2:1];
 		end		
-		else if (ready & tx_data_valid) begin
+		else if (rdy & tx_data_valid) begin
 			tx_shift[BITS+2:1] <= {1'b1,tx_data,1'b0};
 			tx_data_ack <= 1'b1;
-			ready <= 1'b0;		
+			rdy <= 1'b0;		
 		end
 		else begin
 			tx_data_ack <= 1'b0;
-			ready <= ~|tx_shift[BITS+2:1];
+			rdy <= ~|tx_shift[BITS+2:1];
 		end
 	end		
 end
+assign ready = rdy;
 
 endmodule
 
@@ -188,7 +190,7 @@ endmodule
 ////////////////////////////////////////////////////////////////////
 
 module uart (clk,rst,
-			tx_data,tx_data_valid,tx_data_ack,txd,
+			tx_data,tx_data_valid,tx_data_ack,tx_ready,txd,
 			rx_data,rx_data_fresh,rxd);
 
 parameter BITS = 10;
@@ -212,6 +214,7 @@ input clk, rst, rxd;
 input [BITS-1:0] tx_data;
 input tx_data_valid;
 output tx_data_ack;
+output tx_ready;
 output [BITS-1:0] rx_data;
 output rx_data_fresh;
 
@@ -220,6 +223,7 @@ uart_tx utx (
 	.tx_data(tx_data),
 	.tx_data_valid(tx_data_valid),
 	.tx_data_ack(tx_data_ack),
+  .ready(tx_ready),
 	.txd(txd));
 
 defparam utx .BITS = BITS;

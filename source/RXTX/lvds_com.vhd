@@ -77,7 +77,7 @@ COMPONENT lvds_tranceivers
 	(
 		CLK					:	 IN STD_LOGIC;
 		RST					:	 IN STD_LOGIC;
-		TX_CLK				:	 IN STD_LOGIC;
+		CLK_COMS				:	 IN STD_LOGIC;
 		RX_LVDS_DATA		:	 IN STD_LOGIC;
 		TX_DATA				:	 IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 		TX_DATA_RDY			:	 IN STD_LOGIC;
@@ -476,9 +476,9 @@ end process;
 
 xDC_lvds_tranceivers : lvds_tranceivers
 port map(
-			CLK				=>		xCLK_COMS,
+			CLK				=>		xCLK_40MHz,
 			RST				=>		xCLR_ALL,	
-			TX_CLK			=>		xCLK_COMS,
+			CLK_COMS			=>		xCLK_COMS,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
 			TX_DATA			=>		TX_DATA,
 			TX_DATA_RDY    =>		TX_DATA_RDY,

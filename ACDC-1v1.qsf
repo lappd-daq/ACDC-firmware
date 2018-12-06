@@ -848,7 +848,6 @@ set_global_assignment -name SEARCH_PATH source/usb/
 set_global_assignment -name SEARCH_PATH mega/
 set_global_assignment -name SEARCH_PATH source/lvds/
 set_global_assignment -name SEARCH_PATH digital_card/source/
-set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
 set_global_assignment -name VERILOG_FILE source/RXTX/encoder_8b10b.v
 set_global_assignment -name VERILOG_FILE source/RXTX/decoder_8b10b.v
 set_global_assignment -name VHDL_FILE source/RXTX/lvds_tranceivers.vhd
@@ -885,3 +884,4 @@ set_global_assignment -name QIP_FILE altpll3.qip
 set_global_assignment -name VHDL_FILE source/AC_CONTROL/VCDL_Monitor_Loop.vhd
 set_global_assignment -name QIP_FILE source/RXTX/tx_fifo.qip
 set_global_assignment -name QIP_FILE source/RXTX/rx_fifo.qip
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

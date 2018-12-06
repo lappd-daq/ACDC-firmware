@@ -162,11 +162,11 @@ BEGIN
 		clk0_phase_shift => "0",
 		clk1_divide_by => 1,
 		clk1_duty_cycle => 50,
-		clk1_multiply_by => 10,
-		clk1_phase_shift => "313",
-		clk2_divide_by => 8,
+		clk1_multiply_by => 8,
+		clk1_phase_shift => "391",
+		clk2_divide_by => 1,
 		clk2_duty_cycle => 50,
-		clk2_multiply_by => 1,
+		clk2_multiply_by => 3,
 		clk2_phase_shift => "0",
 		compensate_clock => "CLK0",
 		inclk0_input_frequency => 25000,
@@ -216,7 +216,7 @@ BEGIN
 		port_extclk1 => "PORT_UNUSED",
 		port_extclk2 => "PORT_UNUSED",
 		port_extclk3 => "PORT_UNUSED",
-		self_reset_on_loss_lock => "OFF",
+		self_reset_on_loss_lock => "ON",
 		width_clock => 5
 	)
 	PORT MAP (
@@ -233,7 +233,7 @@ END SYN;
 -- ============================================================
 -- CNX file retrieval info
 -- ============================================================
--- Retrieval info: PRIVATE: ACTIVECLK_CHECK STRING "0"
+-- Retrieval info: PRIVATE: ACTIVECLK_CHECK STRING "1"
 -- Retrieval info: PRIVATE: BANDWIDTH STRING "1.000"
 -- Retrieval info: PRIVATE: BANDWIDTH_FEATURE_ENABLED STRING "1"
 -- Retrieval info: PRIVATE: BANDWIDTH_FREQ_UNIT STRING "MHz"
@@ -256,8 +256,8 @@ END SYN;
 -- Retrieval info: PRIVATE: DUTY_CYCLE1 STRING "50.00000000"
 -- Retrieval info: PRIVATE: DUTY_CYCLE2 STRING "50.00000000"
 -- Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE0 STRING "40.000000"
--- Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE1 STRING "400.000000"
--- Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE2 STRING "5.000000"
+-- Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE1 STRING "320.000000"
+-- Retrieval info: PRIVATE: EFF_OUTPUT_FREQ_VALUE2 STRING "120.000000"
 -- Retrieval info: PRIVATE: EXPLICIT_SWITCHOVER_COUNTER STRING "0"
 -- Retrieval info: PRIVATE: EXT_FEEDBACK_RADIO STRING "0"
 -- Retrieval info: PRIVATE: GLOCKED_COUNTER_EDIT_CHANGED STRING "1"
@@ -267,7 +267,7 @@ END SYN;
 -- Retrieval info: PRIVATE: HAS_MANUAL_SWITCHOVER STRING "1"
 -- Retrieval info: PRIVATE: INCLK0_FREQ_EDIT STRING "40.000"
 -- Retrieval info: PRIVATE: INCLK0_FREQ_UNIT_COMBO STRING "MHz"
--- Retrieval info: PRIVATE: INCLK1_FREQ_EDIT STRING "100.000"
+-- Retrieval info: PRIVATE: INCLK1_FREQ_EDIT STRING "40.000"
 -- Retrieval info: PRIVATE: INCLK1_FREQ_EDIT_CHANGED STRING "1"
 -- Retrieval info: PRIVATE: INCLK1_FREQ_UNIT_CHANGED STRING "1"
 -- Retrieval info: PRIVATE: INCLK1_FREQ_UNIT_COMBO STRING "MHz"
@@ -289,8 +289,8 @@ END SYN;
 -- Retrieval info: PRIVATE: MULT_FACTOR2 NUMERIC "1"
 -- Retrieval info: PRIVATE: NORMAL_MODE_RADIO STRING "1"
 -- Retrieval info: PRIVATE: OUTPUT_FREQ0 STRING "40.00000000"
--- Retrieval info: PRIVATE: OUTPUT_FREQ1 STRING "400.00000000"
--- Retrieval info: PRIVATE: OUTPUT_FREQ2 STRING "5.00000000"
+-- Retrieval info: PRIVATE: OUTPUT_FREQ1 STRING "320.00000000"
+-- Retrieval info: PRIVATE: OUTPUT_FREQ2 STRING "120.00000000"
 -- Retrieval info: PRIVATE: OUTPUT_FREQ_MODE0 STRING "1"
 -- Retrieval info: PRIVATE: OUTPUT_FREQ_MODE1 STRING "1"
 -- Retrieval info: PRIVATE: OUTPUT_FREQ_MODE2 STRING "1"
@@ -319,7 +319,7 @@ END SYN;
 -- Retrieval info: PRIVATE: RECONFIG_FILE STRING "altpll3.mif"
 -- Retrieval info: PRIVATE: SACN_INPUTS_CHECK STRING "0"
 -- Retrieval info: PRIVATE: SCAN_FEATURE_ENABLED STRING "1"
--- Retrieval info: PRIVATE: SELF_RESET_LOCK_LOSS STRING "0"
+-- Retrieval info: PRIVATE: SELF_RESET_LOCK_LOSS STRING "1"
 -- Retrieval info: PRIVATE: SHORT_SCAN_RADIO STRING "0"
 -- Retrieval info: PRIVATE: SPREAD_FEATURE_ENABLED STRING "0"
 -- Retrieval info: PRIVATE: SPREAD_FREQ STRING "50.000"
@@ -349,11 +349,11 @@ END SYN;
 -- Retrieval info: CONSTANT: CLK0_PHASE_SHIFT STRING "0"
 -- Retrieval info: CONSTANT: CLK1_DIVIDE_BY NUMERIC "1"
 -- Retrieval info: CONSTANT: CLK1_DUTY_CYCLE NUMERIC "50"
--- Retrieval info: CONSTANT: CLK1_MULTIPLY_BY NUMERIC "10"
--- Retrieval info: CONSTANT: CLK1_PHASE_SHIFT STRING "313"
--- Retrieval info: CONSTANT: CLK2_DIVIDE_BY NUMERIC "8"
+-- Retrieval info: CONSTANT: CLK1_MULTIPLY_BY NUMERIC "8"
+-- Retrieval info: CONSTANT: CLK1_PHASE_SHIFT STRING "391"
+-- Retrieval info: CONSTANT: CLK2_DIVIDE_BY NUMERIC "1"
 -- Retrieval info: CONSTANT: CLK2_DUTY_CYCLE NUMERIC "50"
--- Retrieval info: CONSTANT: CLK2_MULTIPLY_BY NUMERIC "1"
+-- Retrieval info: CONSTANT: CLK2_MULTIPLY_BY NUMERIC "3"
 -- Retrieval info: CONSTANT: CLK2_PHASE_SHIFT STRING "0"
 -- Retrieval info: CONSTANT: COMPENSATE_CLOCK STRING "CLK0"
 -- Retrieval info: CONSTANT: INCLK0_INPUT_FREQUENCY NUMERIC "25000"
@@ -402,7 +402,7 @@ END SYN;
 -- Retrieval info: CONSTANT: PORT_extclk1 STRING "PORT_UNUSED"
 -- Retrieval info: CONSTANT: PORT_extclk2 STRING "PORT_UNUSED"
 -- Retrieval info: CONSTANT: PORT_extclk3 STRING "PORT_UNUSED"
--- Retrieval info: CONSTANT: SELF_RESET_ON_LOSS_LOCK STRING "OFF"
+-- Retrieval info: CONSTANT: SELF_RESET_ON_LOSS_LOCK STRING "ON"
 -- Retrieval info: CONSTANT: WIDTH_CLOCK NUMERIC "5"
 -- Retrieval info: USED_PORT: @clk 0 0 5 0 OUTPUT_CLK_EXT VCC "@clk[4..0]"
 -- Retrieval info: USED_PORT: @inclk 0 0 2 0 INPUT_CLK_EXT VCC "@inclk[1..0]"
