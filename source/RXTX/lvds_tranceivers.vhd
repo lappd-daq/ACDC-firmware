@@ -195,6 +195,8 @@ tx_buf : tx_fifo
 -- either send k-codes or data, depending on the fifo.
 tx_enc_input : process(RST, CLK_COMS)
 variable tx_fifo_out_msb	: std_logic_vector(7 downto 0);
+variable last_code		:  std_logic_vector(7 downto 0);
+variable timer				:  integer range 2000000 downto 0;
 begin
 	if RST = '1' then
 		TX_STATE <= RESET;
@@ -203,7 +205,10 @@ begin
 		ein_ena <= '0';
 		tx_fifo_rdreq <= '0';
 		tx_fifo_out_msb := (others => '0');
+		last_code := (others => '0');
+		timer := 0;
 	elsif rising_edge(CLK_COMS) then
+		timer := timer + 1;
 		case TX_STATE is
 			when RESET =>
 				TX_STATE <= READY;
@@ -212,20 +217,24 @@ begin
 				ein_ena <= '0';
 				tx_fifo_rdreq <= '0';
 				tx_fifo_out_msb := (others => '0');
+				last_code := (others => '0');
+				timer := 0;
 			when READY =>
-				if tx_fifo_empty = '0' then
+				if (last_code /= LINK_STATE_OUT) or (timer > 16000) then
+					tx_enc_data <= LINK_STATE_OUT;
+					last_code := LINK_STATE_OUT;
+					kin_ena <= '1';
+					ein_ena <= '1';
+					tx_fifo_rdreq <= '0';
+					TX_STATE <= UART_WAIT;  --only send one byte k-codes.
+					timer := 0;
+				elsif tx_fifo_empty = '0' then
 					tx_fifo_out_msb := tx_fifo_out(15 downto 8);
 					tx_enc_data <= tx_fifo_out(7 downto 0);
 					kin_ena <= '0';
 					ein_ena <= '1';
 					tx_fifo_rdreq <= '1';  --acknowlege fifo read
 					TX_STATE <= UART_WAIT_LSB;
-				else
-					tx_enc_data <= LINK_STATE_OUT;
-					kin_ena <= '1';
-					ein_ena <= '1';
-					tx_fifo_rdreq <= '0';
-					TX_STATE <= UART_WAIT;  --only send one byte k-codes.
 				end if;
 			when UART_WAIT_LSB =>
 				tx_fifo_rdreq <= '0';

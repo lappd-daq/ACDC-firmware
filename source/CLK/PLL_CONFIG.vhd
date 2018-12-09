@@ -85,168 +85,16 @@ begin  -- Behavioral
 	PLL_REF_SEL <= '1';
 
 
---internal_REGISTER(0)(31 downto 0) <= x"0114032"&"0000";
---internal_REGISTER(1)(31 downto 0) <= x"3115ff3"&"0001";
---internal_REGISTER(2)(31 downto 0) <= x"3115ff0"&"0010";
---internal_REGISTER(3)(31 downto 0) <= x"3115ff0"&"0011";
---internal_REGISTER(4)(31 downto 0) <= x"0115ff3"&"0100";
---internal_REGISTER(5)(31 downto 0) <= x"fc009e8"&"0101";
---internal_REGISTER(6)(31 downto 0) <= x"2bff82e"&"0110";
---internal_REGISTER(7)(31 downto 0) <= x"fd903c1"&"0111";
---internal_REGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
+iREGISTER(0)(31 downto 0) <= x"01060320";
+iREGISTER(1)(31 downto 0) <= x"01060321";
+iREGISTER(2)(31 downto 0) <= x"01060302";
+iREGISTER(3)(31 downto 0) <= x"01060303";
+iREGISTER(4)(31 downto 0) <= x"01060314";
+iREGISTER(5)(31 downto 0) <= x"10100A65";
+iREGISTER(6)(31 downto 0) <= x"14AE0106";
+iREGISTER(7)(31 downto 0) <= x"9599FDE7";
+iREGISTER(8)(31 downto 0) <= x"20009D98";	
 
---iREGISTER(0)(31 downto 0) <= x"0040020"&"0000";
---iREGISTER(1)(31 downto 0) <= x"3040020"&"0001";
---iREGISTER(2)(31 downto 0) <= x"3040020"&"0010";
---iREGISTER(3)(31 downto 0) <= x"3014020"&"0011";
---iREGISTER(4)(31 downto 0) <= x"0014023"&"0100";
---iREGISTER(5)(31 downto 0) <= x"fc009eb"&"0101";
---iREGISTER(6)(31 downto 0) <= x"1b5f82e"&"0110";
---iREGISTER(7)(31 downto 0) <= x"ff883e0"&"0111";
---iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
-										--40 MHz -- use this one for fan-out only!!!!
---iREGISTER(0)(31 downto 0) <= x"014000e0"; --014002e0 to use secondary ref
---iREGISTER(1)(31 downto 0) <= x"014000c1";
---iREGISTER(2)(31 downto 0) <= x"014000c2";
---iREGISTER(3)(31 downto 0) <= x"014000e3";
---iREGISTER(4)(31 downto 0) <= x"014000e4";
---iREGISTER(5)(31 downto 0) <= x"01ff1e75"; --pick lvds/lvcmos input buffers
---iREGISTER(6)(31 downto 0) <= x"adffff86";
---iREGISTER(7)(31 downto 0) <= x"bd0037f7";
---iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
-										--40 MHz
---iREGISTER(0)(31 downto 0) <= x"01400020";
---iREGISTER(1)(31 downto 0) <= x"01400001";
---iREGISTER(2)(31 downto 0) <= x"01400002";
---iREGISTER(3)(31 downto 0) <= x"01400003";
---iREGISTER(4)(31 downto 0) <= x"01400014";
---iREGISTER(5)(31 downto 0) <= x"10000BE5";
---iREGISTER(6)(31 downto 0) <= x"044E02E6";
---iREGISTER(7)(31 downto 0) <= x"BD913DB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
---										--40 MHz using PLL
---iREGISTER(0)(31 downto 0) <= x"01140320"; --014002e0 to use secondary ref
---iREGISTER(1)(31 downto 0) <= x"01140301";
---iREGISTER(2)(31 downto 0) <= x"01140302";
---iREGISTER(3)(31 downto 0) <= x"01140303";
---iREGISTER(4)(31 downto 0) <= x"01140314";
---iREGISTER(5)(31 downto 0) <= x"10000BE5";
---iREGISTER(6)(31 downto 0) <= x"044E02E6";
---iREGISTER(7)(31 downto 0) <= x"BD913DB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
-
---										--36 MHz using PLL
---iREGISTER(0)(31 downto 0) <= x"010E0320";
---iREGISTER(1)(31 downto 0) <= x"010E0301";
---iREGISTER(2)(31 downto 0) <= x"010E0302";
---iREGISTER(3)(31 downto 0) <= x"010E0303";
---iREGISTER(4)(31 downto 0) <= x"010E0314";
---iREGISTER(5)(31 downto 0) <= x"10040BE5";
---iREGISTER(6)(31 downto 0) <= x"044E04B6";
---iREGISTER(7)(31 downto 0) <= x"BD91BBB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
---										--35 MHz using PLL
---		iREGISTER(0)(31 downto 0) <= x"011C0320";
---		iREGISTER(1)(31 downto 0) <= x"011C0301";
---		iREGISTER(2)(31 downto 0) <= x"011C0302";
---		iREGISTER(3)(31 downto 0) <= x"011C0303";
---		iREGISTER(4)(31 downto 0) <= x"011C0314";
---		iREGISTER(5)(31 downto 0) <= x"10040BE5";
---		iREGISTER(6)(31 downto 0) <= x"044E0C76";
---		iREGISTER(7)(31 downto 0) <= x"BD91BBB7";
---		iREGISTER(8)(31 downto 0) <= x"20009D98";
---32 MHz and 40 on channel 5
---		iREGISTER(0)(31 downto 0) <= x"01160320";
---		iREGISTER(1)(31 downto 0) <= x"01160301";
---		iREGISTER(2)(31 downto 0) <= x"01160302";
---		iREGISTER(3)(31 downto 0) <= x"01160303";
---		iREGISTER(4)(31 downto 0) <= x"01140314";
---		iREGISTER(5)(31 downto 0) <= x"10000BE5";
---		iREGISTER(6)(31 downto 0) <= x"042E02E6";
---		iREGISTER(7)(31 downto 0) <= x"BD1177F7";
---		iREGISTER(8)(31 downto 0) <= x"20009D98";
-process(xPLL_MODE)
-begin
-	case xPLL_MODE is
-		when others =>
-		iREGISTER(0)(31 downto 0) <= x"EB060320"; --014002e0 to use secondary ref
-		iREGISTER(1)(31 downto 0) <= x"EB060321";
-		iREGISTER(2)(31 downto 0) <= x"EB060302";
-		iREGISTER(3)(31 downto 0) <= x"EB060303";
-		iREGISTER(4)(31 downto 0) <= x"EB060314";
-		iREGISTER(5)(31 downto 0) <= x"10100BE5";
-		iREGISTER(6)(31 downto 0) <= x"04AE0106";
-		iREGISTER(7)(31 downto 0) <= x"BD99FDE7";
-		iREGISTER(8)(31 downto 0) <= x"20009D98";	
-
-	end case;
-end process;
-
---										--30 MHz using PLL
---iREGISTER(0)(31 downto 0) <= x"011C0320";
---iREGISTER(1)(31 downto 0) <= x"011C0301";
---iREGISTER(2)(31 downto 0) <= x"011C0302";
---iREGISTER(3)(31 downto 0) <= x"011C0303";
---iREGISTER(4)(31 downto 0) <= x"011C0314";
---iREGISTER(5)(31 downto 0) <= x"10000BE5";
---iREGISTER(6)(31 downto 0) <= x"044E02E6";
---iREGISTER(7)(31 downto 0) <= x"BD913DB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
-										 --20 MHz    --40 MHz
-										
---										--20 MHz using PLL
---iREGISTER(0)(31 downto 0) <= x"012C0320";
---iREGISTER(1)(31 downto 0) <= x"012C0301";
---iREGISTER(2)(31 downto 0) <= x"012C0302";
---iREGISTER(3)(31 downto 0) <= x"012C0303";
---iREGISTER(4)(31 downto 0) <= x"012C0314";
---iREGISTER(5)(31 downto 0) <= x"10000BE5";
---iREGISTER(6)(31 downto 0) <= x"044E02E6";
---iREGISTER(7)(31 downto 0) <= x"BD913DB7";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
-
-										 --iREGISTER(0)(31 downto 0) <= x"01800020"; --x"014000e0"; --014002e0 to use secondary ref
---iREGISTER(1)(31 downto 0) <= x"01800001"; --x"014000c1";
---iREGISTER(2)(31 downto 0) <= x"01800002"; --x"014000c2";
---iREGISTER(3)(31 downto 0) <= x"01800023"; --x"014000e3";
---iREGISTER(4)(31 downto 0) <= x"01800014"; --x"014000e4";
---iREGISTER(5)(31 downto 0) <= x"10000BE5"; --x"01ff1e75"; --pick lvds/lvcmos input buffers
---iREGISTER(6)(31 downto 0) <= x"045E02E6"; --x"adffff86";
---iREGISTER(7)(31 downto 0) <= x"BD887647"; --x"bd0037f7";
---iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
-									
-										
-										--PLL30MHz --PLL 25MHz  --20 MHz    --40 MHz
---iREGISTER(0)(31 downto 0) <= x"011C0320";--"010C0320";--x"01800020"; --x"014000e0"; --014002e0 to use secondary ref
---iREGISTER(1)(31 downto 0) <= x"011C0301";--"010C0301";--x"01800001"; --x"014000c1";
---iREGISTER(2)(31 downto 0) <= x"011C0302";--"010C0302";--x"01800002"; --x"014000c2";
---iREGISTER(3)(31 downto 0) <= x"011C0303";--"010C0303";--x"01800023"; --x"014000e3";
---iREGISTER(4)(31 downto 0) <= x"011C0314";--"010C0314";--x"01800014"; --x"014000e4";
---iREGISTER(5)(31 downto 0) <= x"10000BE5";--"10040A65";--x"01ff1e75"; --pick lvds/lvcmos input buffers
---iREGISTER(6)(31 downto 0) <= x"045E02E6";--"045E0186";--x"adffff86";
---iREGISTER(7)(31 downto 0) <= x"BD887647";--"BD887647";--x"bd0037f7";
---iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
-
-									 --PLL 25MHz  
---iREGISTER(0)(31 downto 0) <= x"010C0320";
---iREGISTER(1)(31 downto 0) <= x"010C0301";
---iREGISTER(2)(31 downto 0) <= x"010C0302";
---iREGISTER(3)(31 downto 0) <= x"010C0303";
---iREGISTER(4)(31 downto 0) <= x"010C0314";
---iREGISTER(5)(31 downto 0) <= x"10040A65";
---iREGISTER(6)(31 downto 0) <= x"045E0186";
---iREGISTER(7)(31 downto 0) <= x"BD887647";
---iREGISTER(8)(31 downto 0) <= x"e0001ff"&"1000";
-									--PLL 28MHz 
---iREGISTER(0)(31 downto 0) <= x"011E0320";
---iREGISTER(1)(31 downto 0) <= x"011E0301";
---iREGISTER(2)(31 downto 0) <= x"011E0302";
---iREGISTER(3)(31 downto 0) <= x"011E0303";
---iREGISTER(4)(31 downto 0) <= x"011E0314";
---iREGISTER(5)(31 downto 0) <= x"10040BE5";
---iREGISTER(6)(31 downto 0) <= x"045E0C76";
---iREGISTER(7)(31 downto 0) <= x"BD887647";
---iREGISTER(8)(31 downto 0) <= x"20009D98";
 
 ------------------------------------------------------------------------
 
@@ -255,14 +103,10 @@ end process;
 	xRAM2 <= iREGISTER(2)(31 downto 0) ;
 	xRAM3 <= iREGISTER(3)(31 downto 0) ;
 	xRAM4 <= iREGISTER(4)(31 downto 0) ;
-	--xRAM5 <= iREGISTER(5)(31 downto 18) & "00" & iREGISTER(5)(15 downto 4) & x"5";
-	--xRAM6 <= iREGISTER(6)(31 downto 28) & '0' & iREGISTER(6)(26 downto 16) 
-												--& '0' & iREGISTER(6)(14 downto 4) & x"6";
-	--xRAM7 <= "1011110" & iREGISTER(7)(24 downto 4) & x"7";
 	xRAM5 <= iREGISTER(5)(31 downto 0) ;
 	xRAM6 <= iREGISTER(6)(31 downto 0) ;
 	xRAM7 <= iREGISTER(7)(31 downto 0) ;
-	xRAM8 <= x"20009D98"; --x"80005dd" & x"8";
+	xRAM8 <= iREGISTER(8)(31 downto 0) ;
 	
 --	xRAM0 <= iREGISTER(0)(31 downto 8) & "00" & iREGISTER(0)(5 downto 4) & x"0";
 --	xRAM1 <= iREGISTER(1)(31 downto 8) & "00" & iREGISTER(1)(5 downto 4) & x"1";

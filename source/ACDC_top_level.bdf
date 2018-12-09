@@ -6151,17 +6151,6 @@ refer to the applicable agreement for further details.
 	(pt 2232 312)
 )
 (connector
-	(text "lvds_tx_out[2..1]" (rect 2200 272 2283 284)(font "Arial" ))
-	(pt 2144 280)
-	(pt 2184 280)
-	(bus)
-)
-(connector
-	(text "lvds_tx_out[0]" (rect 1512 1448 1582 1460)(font "Arial" ))
-	(pt 1488 1464)
-	(pt 1544 1464)
-)
-(connector
 	(text "lvds_tx_out[3]" (rect 2177 360 2247 372)(font "Arial" ))
 	(pt 2144 376)
 	(pt 2208 376)
@@ -6175,6 +6164,17 @@ refer to the applicable agreement for further details.
 	(text "xCLK_COMS" (rect 1696 664 1757 681)(font "Intel Clear" ))
 	(pt 1752 664)
 	(pt 1728 664)
+)
+(connector
+	(text "lvds_tx_out[2]" (rect 1512 1448 1582 1460)(font "Arial" ))
+	(pt 1488 1464)
+	(pt 1544 1464)
+)
+(connector
+	(text "lvds_tx_out[1..0]" (rect 2200 272 2283 284)(font "Arial" ))
+	(pt 2144 280)
+	(pt 2184 280)
+	(bus)
 )
 (junction (pt 768 56))
 (junction (pt 1360 -16))

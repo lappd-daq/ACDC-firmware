@@ -466,9 +466,12 @@ variable valid_data : std_logic;
 					end if;
 					
 				when GND_STATE_END =>
+					valid_data := '0';
 					--nothing to do, end of case, should have been reset by now
 				
 			end case;
+		else
+			valid_data := '0';
 		end if;
 		TX_DATA_RDY <= valid_data;
 end process;		
@@ -489,6 +492,8 @@ port map(
 			RX_DATA			=>		RX_DATA,
 			RX_ERROR			=>		RX_ERROR,
 			TX_LVDS_DATA	=>		xTX_LVDS_DATA(0));	
+
+xTX_LVDS_DATA(1) <= '1';
 
 
 end Behavioral;
