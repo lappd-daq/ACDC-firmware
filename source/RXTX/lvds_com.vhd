@@ -327,7 +327,8 @@ variable valid_data : std_logic;
 		mask_count 			:= 0;
 		LVDS_MESS_STATE 	<= MESS_START;
 
-	elsif falling_edge(xCLK_40MHz) and (TX_BUF_FULL = '0') and (START = '1'  or SYSTEM_START = '1') then		
+	elsif rising_edge(xCLK_40MHz) then
+		if (TX_BUF_FULL = '0') and (START = '1'  or SYSTEM_START = '1') then		
 			valid_data := '1';  -- valid output data, unless we set it otherwise later.
 			case LVDS_MESS_STATE is
 				
@@ -473,7 +474,8 @@ variable valid_data : std_logic;
 		else
 			valid_data := '0';
 		end if;
-		TX_DATA_RDY <= valid_data;
+	end if;
+	TX_DATA_RDY <= valid_data;
 end process;		
 
 
