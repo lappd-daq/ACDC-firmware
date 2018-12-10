@@ -90,9 +90,9 @@ iREGISTER(1)(31 downto 0) <= x"01060321";
 iREGISTER(2)(31 downto 0) <= x"01060302";
 iREGISTER(3)(31 downto 0) <= x"01060303";
 iREGISTER(4)(31 downto 0) <= x"01060314";
-iREGISTER(5)(31 downto 0) <= x"10100A65";
-iREGISTER(6)(31 downto 0) <= x"14AE0106";
-iREGISTER(7)(31 downto 0) <= x"9599FDE7";
+iREGISTER(5)(31 downto 0) <= x"10101E75";
+iREGISTER(6)(31 downto 0) <= x"14AF0106";
+iREGISTER(7)(31 downto 0) <= x"BD99FDE7";
 iREGISTER(8)(31 downto 0) <= x"20009D98";	
 
 
