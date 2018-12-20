@@ -81,6 +81,7 @@ COMPONENT lvds_tranceivers
 		RX_LVDS_DATA		:	 IN STD_LOGIC;
 		TX_DATA				:	 IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 		TX_DATA_RDY			:	 IN STD_LOGIC;
+		LINK_UP				:   OUT STD_LOGIC;
 		REMOTE_UP			:	 OUT STD_LOGIC;
 		REMOTE_VALID		:	 OUT STD_LOGIC;
 		TX_BUF_FULL			:	 OUT STD_LOGIC;
@@ -101,20 +102,18 @@ type LVDS_MESS_STATE_TYPE	is (MESS_START, INIT, ADC, INFO0, INFO1, INFO2, INFO3,
 										PSEC_END, MESS_END, CC_DONE, GND_STATE, GND_STATE_END);
 signal LVDS_MESS_STATE			:  LVDS_MESS_STATE_TYPE := MESS_START;
 
-signal TX_DATA_RDY 				:  std_logic;
+signal GOOD_DATA_RDY 			:  std_logic;
 signal TX_BUF_FULL 				:  std_logic;
 signal RX_DATA_RDY				:  std_logic;
-signal RX_ALIGN_BITSLIP			:	std_logic;
 signal RX_DATA						:	std_logic_vector(7 downto 0);
 signal CHECK_WORD					:	std_logic_vector(7 downto 0);
-signal TX_DATA						: 	std_logic_vector(15 downto 0);
 signal ALIGN_SUCCESS				:  std_logic := '0';
 signal GOOD_DATA					:  std_logic_vector(15 downto 0);
+signal LINK_UP						:  std_logic;
 signal REMOTE_UP					:  std_logic;
 signal REMOTE_VALID				:  std_logic;
 signal RX_ERROR					:  std_logic;
 
-signal RX_OUTCLK					:	std_logic;
 signal CC_INSTRUCTION			:	std_logic_vector(31 downto 0);
 signal CC_INSTRUCTION_FULL			:	std_logic_vector(31 downto 0);
 
@@ -143,7 +142,7 @@ signal SYSTEM_START				: std_logic;
 
 begin
 
-ALIGN_SUCCESS		<= '1' when (REMOTE_VALID = '1') else '0';
+ALIGN_SUCCESS		<= '1' when (LINK_UP = '1') else '0';
 
 xALIGN_SUCCESS 	<= ALIGN_SUCCESS;
 xINSTRUCT_READY	<= INSTRUCT_READY_REGISTERED(2);
@@ -181,7 +180,7 @@ end process;
 
 
 	
-process(RX_OUTCLK, ALIGN_SUCCESS, xCLR_ALL)
+process(xCLK_40MHz, ALIGN_SUCCESS, xCLR_ALL)
 variable i : integer range 50 downto 0;	
 begin
 	if xCLR_ALL = '1' or ALIGN_SUCCESS = '0' then
@@ -195,60 +194,65 @@ begin
 		RX_BUSY <= '0';
 		GET_CC_INSTRUCT_STATE <= IDLE;
 		
-	elsif falling_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
-		if RX_DATA_RDY = '1' then
-			case GET_CC_INSTRUCT_STATE is
-				when IDLE =>
-					i := 0;
-					INSTRUCT_READY <= '0';
-					ready_flag <= '0';
-					RX_BUSY <= '0';
-					if RX_DATA = STARTWORD_8a then
-						RX_BUSY <= '1';
-						GET_CC_INSTRUCT_STATE <= ONDECK;
-					end if;
+	elsif falling_edge(xCLK_40MHz) and ALIGN_SUCCESS = '1' then
+		case GET_CC_INSTRUCT_STATE is
+			when IDLE =>
+				i := 0;
+				INSTRUCT_READY <= '0';
+				ready_flag <= '0';
+				RX_BUSY <= '0';
+				if RX_DATA_RDY = '1' AND RX_DATA = STARTWORD_8a then
+					RX_BUSY <= '1';
+					GET_CC_INSTRUCT_STATE <= ONDECK;
+				end if;
+			
+			when ONDECK => 
+				if RX_DATA_RDY = '1' AND RX_DATA = STARTWORD_8b then
+					GET_CC_INSTRUCT_STATE <= CATCH0;
+				elsif RX_DATA_RDY = '1' then	
+					GET_CC_INSTRUCT_STATE <= IDLE;
+				end if;
 				
-				when ONDECK => 
-					if RX_DATA = STARTWORD_8b then
-						GET_CC_INSTRUCT_STATE <= CATCH0;
-					else	
-						GET_CC_INSTRUCT_STATE <= IDLE;
-					end if;
-					
-				when CATCH0 =>
+			when CATCH0 =>
+				if  RX_DATA_RDY = '1' then
 					CC_INSTRUCTION(31 downto 24) 	<= RX_DATA;
 					GET_CC_INSTRUCT_STATE <= CATCH1;
-				when CATCH1 =>
+				end if;
+			when CATCH1 =>
+				if  RX_DATA_RDY = '1' then
 					CC_INSTRUCTION(23 downto 16) 	<= RX_DATA;
 					GET_CC_INSTRUCT_STATE <= CATCH2;
-				when CATCH2 =>
+				end if;
+			when CATCH2 =>
+				if  RX_DATA_RDY = '1' then
 					CC_INSTRUCTION(15 downto 8) 	<= RX_DATA;
 					GET_CC_INSTRUCT_STATE <= CATCH3;
-				when CATCH3 =>
+				end if;
+			when CATCH3 =>
+				if  RX_DATA_RDY = '1' then
 					CC_INSTRUCTION(7 downto 0) 	<= RX_DATA;
 					ready_flag <= '1';
 					GET_CC_INSTRUCT_STATE <= DELAY;
+				end if;
+			when DELAY =>
+				CC_INSTRUCTION_FULL <= CC_INSTRUCTION;
+				if i >1 then
+					i := 0;
+					GET_CC_INSTRUCT_STATE <= READY;
+				else
+					i := i+1;
+				end if;
 				
-				when DELAY =>
-					CC_INSTRUCTION_FULL <= CC_INSTRUCTION;
-					if i >1 then
-						i := 0;
-						GET_CC_INSTRUCT_STATE <= READY;
-					else
-						i := i+1;
-					end if;
-					
-				when READY =>
-					INSTRUCT_READY <= '1';
-					i := i + 1;
-					if i = 10 then
-						i := 0;
-						RX_BUSY <= '0';
-						GET_CC_INSTRUCT_STATE <= IDLE;
-					end if;
-			end case;
-		end if;
-	--elsif rising_edge(RX_OUTCLK) and ALIGN_SUCCESS = '1' then
+			when READY =>
+				INSTRUCT_READY <= '1';
+				i := i + 1;
+				if i = 10 then
+					i := 0;
+					RX_BUSY <= '0';
+					GET_CC_INSTRUCT_STATE <= IDLE;
+				end if;
+		end case;
+	--elsif rising_edge(xCLK_40MHz) and ALIGN_SUCCESS = '1' then
 		--CC_INSTRUCTION_READY <= CC_INSTRUCTION;
 		--INSTRUCT_READY_REGISTERED <= INSTRUCT_READY;
 	end if;
@@ -475,7 +479,7 @@ variable valid_data : std_logic;
 			valid_data := '0';
 		end if;
 	end if;
-	TX_DATA_RDY <= valid_data;
+	GOOD_DATA_RDY <= valid_data;
 end process;		
 
 
@@ -485,8 +489,9 @@ port map(
 			RST				=>		xCLR_ALL,	
 			CLK_COMS			=>		xCLK_COMS,
 			RX_LVDS_DATA	=>		xRX_LVDS_DATA,
-			TX_DATA			=>		TX_DATA,
-			TX_DATA_RDY    =>		TX_DATA_RDY,
+			TX_DATA			=>		GOOD_DATA,
+			TX_DATA_RDY    =>		GOOD_DATA_RDY,
+			LINK_UP			=>		LINK_UP,
 			REMOTE_UP		=>		REMOTE_UP,
 			REMOTE_VALID	=> 	REMOTE_VALID,
 			TX_BUF_FULL 	=> 	TX_BUF_FULL,

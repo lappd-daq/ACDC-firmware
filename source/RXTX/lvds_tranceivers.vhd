@@ -33,6 +33,7 @@ ENTITY lvds_tranceivers IS
 		RX_LVDS_DATA 	:  IN  STD_LOGIC;
 		TX_DATA 			:  IN  STD_LOGIC_VECTOR(15 DOWNTO 0);
 		TX_DATA_RDY		:  IN  STD_LOGIC;
+		LINK_UP			:  OUT STD_LOGIC;
 		REMOTE_UP		:  OUT STD_LOGIC;
 		REMOTE_VALID	:  OUT STD_LOGIC;
 		TX_BUF_FULL		:  out std_logic;
@@ -169,6 +170,7 @@ signal tx_fifo_rdreq		:  std_logic;
 signal tx_fifo_out		:  std_logic_vector(15 downto 0);
 signal tx_fifo_empty		:  std_logic;
 signal rx_fifo_empty		:  std_logic;
+signal rx_fifo_wrreq		:  std_logic;
 signal rx_fifo_rdreq		:  std_logic;
 
 
@@ -372,7 +374,10 @@ begin
 	end if;
 end process;
 
+LINK_UP  <= '1' when (LINK_STATE = UP) and (REMOTE_LINK_STATE = UP) else '0';
+
 RX_ERROR  <= dout_kerr OR dout_rderr;
+rx_fifo_wrreq  <= '1' when (dout_val = '1') AND (dout_k = '0') AND (dout_kerr = '0') else '0';
 		
 RX_DATA_RDY <= (NOT rx_fifo_empty);
 
@@ -383,7 +388,7 @@ rx_buf : rx_fifo
 		rdclk	=> CLK,
 		rdreq	=> NOT rx_fifo_empty,
 		wrclk	=> CLK_COMS,
-		wrreq	=> dout_val,
+		wrreq	=> rx_fifo_wrreq,
 		q		=> RX_DATA,
 		rdempty	=> rx_fifo_empty,
 		wrfull	=> open  -- should probably include backpressure.
