@@ -142,6 +142,7 @@ signal tx_data_ack	:  std_logic;		-- data acknowledge from the UART
 signal tx_ready			:  std_logic;
 signal rx_data_fresh :  std_logic;		-- new data from the UART
 
+signal LINK_IDLE		:  std_logic;  -- check if there is anything on the link.
 type LINK_STATE_TYPE is (DOWN, CHECKING, UP, ERROR);
 signal LINK_STATE : LINK_STATE_TYPE;
 signal REMOTE_LINK_STATE	:  LINK_STATE_TYPE;
@@ -198,7 +199,7 @@ tx_buf : tx_fifo
 tx_enc_input : process(RST, CLK_COMS)
 variable tx_fifo_out_msb	: std_logic_vector(7 downto 0);
 variable last_code		:  std_logic_vector(7 downto 0);
-variable timer				:  integer range 2000000 downto 0;
+variable timer				:  integer range 20000 downto 0;
 begin
 	if RST = '1' then
 		TX_STATE <= RESET;
@@ -222,7 +223,7 @@ begin
 				last_code := (others => '0');
 				timer := 0;
 			when READY =>
-				if (last_code /= LINK_STATE_OUT) or (timer > 16000) then
+				if (last_code /= LINK_STATE_OUT) or (timer > 16383) then
 					tx_enc_data <= LINK_STATE_OUT;
 					last_code := LINK_STATE_OUT;
 					kin_ena <= '1';
@@ -326,7 +327,7 @@ rx_dec : decoder_8b10b
 		dout_rdreg => RX_RDreg);		-- running disparity output (reg)
 
 --Check if Link is disconnected
-process(CLK_COMs, RST)
+process(CLK, RST)
 variable counter 	: integer range 200000000 downto 0;
 variable dff1,dff2,dff3		: std_logic;
 variable edge		: std_logic;
@@ -337,17 +338,37 @@ begin
 		dff3		:= '0';
 		edge		:= dff2 xor dff3;
 		counter	:= 0;
-		LINK_STATE <= DOWN;
-		LINK_STATE_OUT <= K28_1;
-	elsif rising_edge(CLK_COMs) then
+		LINK_IDLE <= '1';
+	elsif rising_edge(CLK) then
 		edge 	:= dff2 xor dff3;
 		dff3  := dff2;
 		dff2	:= dff1;
 		dff1  := RX_LVDS_DATA;
+		if edge = '1' then
+			counter := 0;
+			LINK_IDLE <= '0';
+		elsif counter > 20000000 then
+			LINK_IDLE <= '1';
+		else
+			counter := counter + 1;
+		end if;
+	end if;
+end process;
+		
+process(CLK_COMS, RST)
+variable idle_coms, idle_coms0 : std_logic;
+begin
+	if RST = '1' then
+		LINK_STATE <= DOWN;
+		LINK_STATE_OUT <= K28_1;
+		idle_coms := '0';
+		idle_coms0 := '0';
+	elsif rising_edge(CLK_COMS) then
+		idle_coms := idle_coms0;
+		idle_coms0 := LINK_IDLE;
 		case LINK_STATE is
 			when DOWN =>
-				if edge = '1' then
-					counter := 0;
+				if idle_coms = '0' then
 					LINK_STATE <= CHECKING;
 					LINK_STATE_OUT <=  K28_7;
 				else
@@ -355,19 +376,15 @@ begin
 				end if;
 			when others =>
 				if dout_val = '1' and dout_kerr = '0' then
-					counter := 0;
 					LINK_STATE <= UP;
 					LINK_STATE_OUT <= K28_5;
 				elsif dout_kerr = '1' or dout_rderr = '1' then
-					counter := 0;
 					LINK_STATE <= ERROR;
 					LINK_STATE_OUT <= K27_7;
 				else
-					counter := counter + 1;
-					if counter > 160000000 then -- check if we're past timeout
+					if idle_coms = '1' then -- check if we're past timeout
 						LINK_STATE <= DOWN;
 						LINK_STATE_OUT <=  K28_1;
-						counter := 0;
 					end if;
 				end if;
 		end case;

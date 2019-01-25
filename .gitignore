@@ -32,7 +32,7 @@ $RECYCLE.BIN/
 *.jdi
 *.map
 *.cdf
-*.qip
+#*.qip # no idea why this wouldn't be included.
 *.ppf
 *.txt
 *.qar
