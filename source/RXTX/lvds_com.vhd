@@ -11,7 +11,7 @@
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 --use IEEE.STD_LOGIC_ARITH.ALL;
-use IEEE.STD_LOGIC_UNSIGNED.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL; -- this should not be used!
 
 use work.Definition_Pool.all;
 
@@ -122,8 +122,6 @@ signal MASK_COUNT_VECTOR		:	std_logic_vector(2 downto 0);
  
 signal RADDR						: std_logic_vector(RAM_ADR_SIZE-1 downto 0);
 signal RAM_READ_EN				: std_logic_vector(4 downto 0);
-signal RAM_CNT						: std_logic_vector(3 downto 0) := "0000";
-signal RAM_CNT_TEMP				: std_logic_vector(3 downto 0) := "0000";
 signal RX_BUSY						: std_logic := '0';
 signal DONE							: std_logic := '0';
 signal START						: std_logic;
@@ -214,25 +212,6 @@ begin
 end process;
 
 --organize packets and send data along LVDS to CC
-process(RAM_CNT)   
-begin
-	case RAM_CNT is
-	when "0000" =>
-		RAM_READ_EN <= "00000";
-	when "0001" =>
-		RAM_READ_EN <= "00001";
-	when "0010" =>
-		RAM_READ_EN <= "00010";
-	when "0011" =>
-		RAM_READ_EN <= "00100";
-	when "0100" =>
-		RAM_READ_EN <= "01000";
-	when "0101" =>
-		RAM_READ_EN <= "10000";
-	when others =>
-		RAM_READ_EN <= "00000";
-	end case;
-end process;
 
 --process (xCLR_ALL, xCLK_40MHz, internal_done_bit)
 --begin
@@ -272,13 +251,13 @@ process(xCLK_40MHz, START, xCLR_ALL, PSEC_MASK, xSYSTEM_IS_CLEAR )
 variable i : integer range 50 downto 0;	
 variable mask_count : integer range 4 downto 0 := 0;
 variable valid_data : std_logic;	
+variable RAM_CNT	  : integer range 6 downto 0;
 	begin
 	if xCLR_ALL = '1' or DONE = '1' or ALIGN_SUCCESS = '0' then
 		RADDR 				<= "00000000000000";--(others=>'0');
 		GOOD_DATA 			<= (others=>'0');
 		valid_data			:= '0';
-		RAM_CNT				<= (others=>'0');
-		RAM_CNT_TEMP		<= (others=>'0');
+		RAM_CNT				:= 0;
 		internal_done_bit <= '0';
 		mess_busy			<= '0';
 		i 						:= 0;
@@ -295,6 +274,7 @@ variable valid_data : std_logic;
 					if i > 1 then
 						i := 0;
 						LVDS_MESS_STATE <= INIT;	
+						valid_data := '0';
 					else
 						GOOD_DATA 		<= STARTWORD;
 						mess_busy      <= '1';
@@ -304,6 +284,7 @@ variable valid_data : std_logic;
 				when INIT =>
 					--GOOD_DATA 	<= x"F005";
 					if mask_count >= 5 then
+						valid_data := '0';
 						i:= 0;
 							--LVDS_MESS_STATE <= MESS_END;
 						LVDS_MESS_STATE <= TRIG_RATE;
@@ -315,7 +296,7 @@ variable valid_data : std_logic;
 					--elsif xREAD_ADC_DATA = '1' then
 					else
 						GOOD_DATA 	<= x"F005";
-						RAM_CNT <= RAM_CNT_TEMP + 1;
+						RAM_CNT := RAM_CNT + 1;
 						--RAM_CNT <= "0001";
 						LVDS_MESS_STATE <= ADC;
 					end if;
@@ -323,8 +304,8 @@ variable valid_data : std_logic;
 				when ADC =>	
 					if RADDR > 1538 then       --256
 						RADDR <= (others=>'0');
-						RAM_CNT_TEMP <= RAM_CNT;
 						LVDS_MESS_STATE  <= INFO0;	
+						valid_data := '0';
 					
 					else
 						GOOD_DATA <=  xADC(mask_count);
@@ -333,7 +314,6 @@ variable valid_data : std_logic;
 					end if;
 				
 				when INFO0 =>
-					RAM_CNT <= (others=> '0');
 					GOOD_DATA <= x"BA11";	
 					LVDS_MESS_STATE <= INFO1;								
 				when INFO1 =>
@@ -396,11 +376,11 @@ variable valid_data : std_logic;
 
 					if i > 2 then
 						i := 0;
-						LVDS_MESS_STATE <= CC_DONE;	
+						LVDS_MESS_STATE <= CC_DONE;
+						valid_data := '0';
 					
 					else
 						GOOD_DATA <= ENDWORD;	
-						RAM_CNT <= (others=>'0');
 						i := i+1;	
 					end if;
 						
@@ -427,6 +407,22 @@ variable valid_data : std_logic;
 					valid_data := '0';
 					--nothing to do, end of case, should have been reset by now
 				
+			end case;
+			case RAM_CNT is
+				when 0 =>
+					RAM_READ_EN <= "00000";
+				when 1 =>
+					RAM_READ_EN <= "00001";
+				when 2 =>
+					RAM_READ_EN <= "00010";
+				when 3 =>
+					RAM_READ_EN <= "00100";
+				when 4 =>
+					RAM_READ_EN <= "01000";
+				when 5 =>
+					RAM_READ_EN <= "10000";
+				when others =>
+					RAM_READ_EN <= "00000";
 			end case;
 		else
 			valid_data := '0';

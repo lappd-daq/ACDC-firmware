@@ -4640,6 +4640,23 @@ refer to the applicable agreement for further details.
 		(rectangle (rect 16 16 376 512))
 	)
 )
+(symbol
+	(rect 1656 1528 1688 1560)
+	(text "GND" (rect 8 16 29 26)(font "Arial" (font_size 6)))
+	(text "inst1" (rect 3 21 25 38)(font "Intel Clear" )(invisible))
+	(port
+		(pt 16 0)
+		(output)
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(text "1" (rect 18 0 23 12)(font "Courier New" (bold))(invisible))
+		(line (pt 16 8)(pt 16 0))
+	)
+	(drawing
+		(line (pt 8 8)(pt 16 16))
+		(line (pt 16 16)(pt 24 8))
+		(line (pt 8 8)(pt 24 8))
+	)
+)
 (connector
 	(text "rdy[1..0]" (rect 257 1152 299 1164)(font "Arial" ))
 	(pt 176 1160)
@@ -6136,11 +6153,6 @@ refer to the applicable agreement for further details.
 	(pt 2232 312)
 )
 (connector
-	(text "lvds_tx_out[3]" (rect 2177 360 2247 372)(font "Arial" ))
-	(pt 2144 376)
-	(pt 2208 376)
-)
-(connector
 	(text "xCLK_COMS" (rect 384 608 445 625)(font "Intel Clear" ))
 	(pt 376 624)
 	(pt 320 624)
@@ -6170,6 +6182,11 @@ refer to the applicable agreement for further details.
 	(text "lvds_rx_in[1]" (rect 583 136 646 148)(font "Arial" ))
 	(pt 560 152)
 	(pt 808 152)
+)
+(connector
+	(text "lvds_tx_out[3]" (rect 1696 1512 1766 1524)(font "Arial" ))
+	(pt 1672 1528)
+	(pt 1728 1528)
 )
 (junction (pt 768 56))
 (junction (pt 1360 -16))
