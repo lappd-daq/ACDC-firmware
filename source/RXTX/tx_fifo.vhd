@@ -100,17 +100,17 @@ BEGIN
 	dcfifo_component : dcfifo
 	GENERIC MAP (
 		intended_device_family => "Cyclone IV GX",
-		lpm_numwords => 16,
+		lpm_numwords => 32768,
 		lpm_showahead => "ON",
 		lpm_type => "dcfifo",
 		lpm_width => 16,
-		lpm_widthu => 4,
+		lpm_widthu => 15,
 		overflow_checking => "ON",
 		rdsync_delaypipe => 4,
-		read_aclr_synch => "OFF",
+		read_aclr_synch => "ON",
 		underflow_checking => "ON",
 		use_eab => "ON",
-		write_aclr_synch => "OFF",
+		write_aclr_synch => "ON",
 		wrsync_delaypipe => 4
 	)
 	PORT MAP (
@@ -138,7 +138,7 @@ END SYN;
 -- Retrieval info: PRIVATE: AlmostFullThr NUMERIC "-1"
 -- Retrieval info: PRIVATE: CLOCKS_ARE_SYNCHRONIZED NUMERIC "0"
 -- Retrieval info: PRIVATE: Clock NUMERIC "4"
--- Retrieval info: PRIVATE: Depth NUMERIC "16"
+-- Retrieval info: PRIVATE: Depth NUMERIC "32768"
 -- Retrieval info: PRIVATE: Empty NUMERIC "1"
 -- Retrieval info: PRIVATE: Full NUMERIC "1"
 -- Retrieval info: PRIVATE: INTENDED_DEVICE_FAMILY STRING "Cyclone IV GX"
@@ -166,17 +166,17 @@ END SYN;
 -- Retrieval info: PRIVATE: wsUsedW NUMERIC "0"
 -- Retrieval info: LIBRARY: altera_mf altera_mf.altera_mf_components.all
 -- Retrieval info: CONSTANT: INTENDED_DEVICE_FAMILY STRING "Cyclone IV GX"
--- Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "16"
+-- Retrieval info: CONSTANT: LPM_NUMWORDS NUMERIC "32768"
 -- Retrieval info: CONSTANT: LPM_SHOWAHEAD STRING "ON"
 -- Retrieval info: CONSTANT: LPM_TYPE STRING "dcfifo"
 -- Retrieval info: CONSTANT: LPM_WIDTH NUMERIC "16"
--- Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "4"
+-- Retrieval info: CONSTANT: LPM_WIDTHU NUMERIC "15"
 -- Retrieval info: CONSTANT: OVERFLOW_CHECKING STRING "ON"
 -- Retrieval info: CONSTANT: RDSYNC_DELAYPIPE NUMERIC "4"
--- Retrieval info: CONSTANT: READ_ACLR_SYNCH STRING "OFF"
+-- Retrieval info: CONSTANT: READ_ACLR_SYNCH STRING "ON"
 -- Retrieval info: CONSTANT: UNDERFLOW_CHECKING STRING "ON"
 -- Retrieval info: CONSTANT: USE_EAB STRING "ON"
--- Retrieval info: CONSTANT: WRITE_ACLR_SYNCH STRING "OFF"
+-- Retrieval info: CONSTANT: WRITE_ACLR_SYNCH STRING "ON"
 -- Retrieval info: CONSTANT: WRSYNC_DELAYPIPE NUMERIC "4"
 -- Retrieval info: USED_PORT: aclr 0 0 0 0 INPUT GND "aclr"
 -- Retrieval info: USED_PORT: data 0 0 16 0 INPUT NODEFVAL "data[15..0]"
