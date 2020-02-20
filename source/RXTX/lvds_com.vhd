@@ -274,6 +274,8 @@ variable RAM_CNT	  : integer range 6 downto 0;
 					if i > 1 then
 						i := 0;
 						LVDS_MESS_STATE <= INIT;	
+						RAM_CNT := RAM_CNT + 1;
+						RADDR <= RADDR + 1;
 						valid_data := '0';
 					else
 						GOOD_DATA 		<= STARTWORD;
@@ -282,34 +284,24 @@ variable RAM_CNT	  : integer range 6 downto 0;
 					end if;
 				
 				when INIT =>
-					--GOOD_DATA 	<= x"F005";
 					if mask_count >= 5 then
 						valid_data := '0';
 						i:= 0;
-							--LVDS_MESS_STATE <= MESS_END;
 						LVDS_MESS_STATE <= TRIG_RATE;
-					
-				--	elsif PSEC_MASK(mask_count) = '0' then			
-				--			mask_count := mask_count + 1;
-				--			LVDS_MESS_STATE <= MESS_START;
-						
-					--elsif xREAD_ADC_DATA = '1' then
 					else
 						GOOD_DATA 	<= x"F005";
-						RAM_CNT := RAM_CNT + 1;
-						--RAM_CNT <= "0001";
 						LVDS_MESS_STATE <= ADC;
 					end if;
 										
 				when ADC =>	
-					if RADDR > 1538 then       --256
-						RADDR <= (others=>'0');
+					if RADDR > 1536 then       --256*6 + 1 because good_data lags one clock cycle
+						RADDR <= "00000000000001";
+						GOOD_DATA <= x"BA11";
 						LVDS_MESS_STATE  <= INFO0;	
 						valid_data := '0';
 					
 					else
 						GOOD_DATA <=  xADC(mask_count);
-						--GOOD_DATA <=  xADC(0);
 						RADDR <= RADDR + 1;
 					end if;
 				
@@ -359,8 +351,8 @@ variable RAM_CNT	  : integer range 6 downto 0;
 				when PSEC_END =>
 					GOOD_DATA <= PSEC_END_WORD;
 					mask_count := mask_count + 1;
+					RAM_CNT := RAM_CNT + 1;
 					LVDS_MESS_STATE <= INIT;
-					--LVDS_MESS_STATE <= MESS_END;
 
 				when TRIG_RATE =>
 					GOOD_DATA <= xSELF_TRIG_RATE_COUNT(i)(15 downto 0);

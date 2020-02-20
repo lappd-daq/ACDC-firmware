@@ -3,7 +3,7 @@
 [Comment Char] |_char
 [File Name]    acdc-1v1.ibs
 [File Rev]     1.0
-[Date]         November 14, 2019
+[Date]         February 20, 2020
 [Source]       Derived from cycloneIII_spice_model,rev 1.0, dated 11/02/07
                using HSPICE Y-2006.03
 [Notes]        - The models are designated as "Correlated" and have been 
